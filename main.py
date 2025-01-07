@@ -4,7 +4,7 @@ from sympy.benchmarks.bench_discrete_log import data_set_1
 from torch.utils.data import Dataset
 from chessboard import *
 
-class ChessDataset(Dataset):
+class ChessDataset():
     def __init__(self):
         """
         Initializes the dataset by reading a PGN file and extracting positions and results.
@@ -46,5 +46,14 @@ class ChessDataset(Dataset):
                 counter += 1
         print("Dataset initialized with {} positions".format(len(self.positions)))
 
+    def __getitem__ (self, index):
+        """
+        Returns the position and result at the given index.
+        Allows the dataset to be accessed with the index operator like so: dataset[42] = (position, result)
+        """
+        return self.positions[index], self.results[index]
+
+
 
 dataset = ChessDataset()
+
