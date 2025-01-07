@@ -8,4 +8,8 @@ class ChessEnv:
     
     def reset(self):
         self.board.reset()
-        
+        return self.get_state()
+    
+
+    def get_state(self):
+        pass
