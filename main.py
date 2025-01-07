@@ -8,7 +8,7 @@ class ChessDataset(Dataset):
     def __init__(self):
         """
         Initializes the dataset by reading a PGN file and extracting positions and results.
-        Each position is encoded as an 8x8x12 tensor and each result is a single number.
+        Each position is encoded as an 8x8x12 list and each result is a single number.
         Each index in the positions list corresponds to the same index in the results list.
         results can have the values 1 (white wins), -1 (black wins) or 0 (draw).
         """
