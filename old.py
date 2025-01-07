@@ -1,3 +1,4 @@
+import chess
 
 
 def extract_moves(game):
@@ -20,6 +21,20 @@ def extract_moves(game):
 
     # Zips the values and converts it to a list of tuples. Returns this list
     return list(zip(turns_clean, white_moves, black_moves))
+
+
+def convert_chess_board_tomatrix(board):
+    """
+    Converts a python-chess board object to an 8x8 matrix representation.
+    """
+    matrix = [[0 for _ in range(8)] for _ in range(8)]
+    for square in chess.SQUARES:
+        piece = board.piece_at(square)
+        if piece:
+            row = 7 - (square // 8)  # Convert from 0-63 to row index
+            col = square % 8        # Convert from 0-63 to column index
+            matrix[row][col] = piece.symbol()  # Use piece.symbol() for notation
+    return matrix
 
 
 """# Extracts the moves from the game in a tuple.
