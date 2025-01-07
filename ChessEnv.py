@@ -1,6 +1,7 @@
 import chess
 import torch
 import numpy as np
+from functions import board_to_tensor
 
 
 class ChessEnv:
@@ -18,14 +19,7 @@ class ChessEnv:
 
 
     def get_state(self): # Returns the state of the board as a torch tensor. 
-        piece_map = self.board.piece_map()
-        state = np.zeros(64, dtype=int)
-        for square, piece in piece_map.items():
-            if str(piece.symbol()) == str(piece.symbol()).lower():
-                state[square] = -1 * piece.piece_type
-            else:
-                state[square] = piece.piece_type
-        return torch.tensor(state, dtype=torch.float32)
+        return board_to_tensor(self.board)
 
 
 if __name__ == "__main__":

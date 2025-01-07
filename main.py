@@ -2,74 +2,75 @@ import random
 import math
 import torch
 import torch.optim as optim
-from DQN import DQN
 from ChessEnv import ChessEnv
+from DQN import DQN
+from functions import board_to_tensor, optimize_model, choose_action
 from ReplayMemory import ReplayMemory
 import chess
-import chess.pgn
 
-device = torch.device("cuda" if torch.cuda.is_available() else
-                      "mps" if torch.backends.mps.is_available() else
-                      "cpu")
 
-env = ChessEnv()
+BATCH_SIZE = 64
+GAMMA = 0.99
+EPS_START = 1.0
+EPS_END = 0.1
+EPS_DECAY = 200
+TARGET_UPDATE = 10
+MEMORY_SIZE = 10000
+LEARNING_RATE = 1e-4
+NUM_EPISODES = 1000
 
-n_actions = 64 * 64
-state = env.reset() 
-n_observations = 64
-
-EPSILON_START = 0.9
-EPSILON_END = 0.05
-EPSILON_DECAY = 1000
-LR = 1e-4
-
-policy_net = DQN(n_observations, n_actions).to(device)
-target_net = DQN(n_observations, n_actions).to(device)
+n_actions = 4096
+policy_net = DQN()
+target_net = DQN()
 target_net.load_state_dict(policy_net.state_dict())
+target_net.eval()
 
-optimizer = optim.AdamW(policy_net.parameters(), lr=LR, amsgrad=True)
-memory = ReplayMemory(10000)
+optimizer = optim.Adam(policy_net.parameters(), lr=LEARNING_RATE)
+memory = ReplayMemory(MEMORY_SIZE)
 
-steps_done = 0
+for episode in range(NUM_EPISODES):
+    board = chess.Board()
+    state = board_to_tensor(board).unsqueeze(0)  # Add batch dimension
 
+    for t in range(200):  # Limit moves per game
+        action = choose_action(state, policy_net, n_actions)
+        move_index = action.item()
+        from_square = move_index // 64
+        to_square = move_index % 64
+        uci_move = f"{chess.square_name(from_square)}{chess.square_name(to_square)}"
 
-def select_action(state): # selects the action to take based on the state of the board
-    global steps_done # sets the varible
-    sample = random.random() # random number between 0 and 1
-    epsilon_threshold = EPSILON_END + (EPSILON_START - EPSILON_END) * math.exp(-1. * steps_done / EPSILON_DECAY) # epsilon greedy strategy
-    steps_done += 1 # update 1
+        try:
+            move = chess.Move.from_uci(uci_move)
+            if move not in board.legal_moves:
+                raise ValueError("Illegal move")
+            board.push(move)
+            reward = 1.0 if board.is_checkmate() else 0.0
+            next_state = board_to_tensor(board).unsqueeze(0)  # Add batch dimension
+            done = board.is_game_over()
+        except:
+            reward = -1.0
+            next_state = None
+            done = True
 
-    q_values = policy_net(state)
-    legal_moves_idxs = [move.from_square * 64 + move.to_square for move in env.actions()] # get the legal moves
-    best_move_idx = legal_moves_idxs[torch.argmax(q_values[0][legal_moves_idxs])] # get the best move
-    return chess.Move.from_uci(f"{best_move_idx // 64}{best_move_idx % 64}")
-    """else:
-        return random.choice(env.actions())"""
+        reward = torch.tensor([reward], dtype=torch.float32)
+        memory.push(state, action, next_state, reward)
 
+        if done:
+            next_state = None  # No next state if the game is over
+        else:
+            next_state = board_to_tensor(board).unsqueeze(0)  # Add batch dimension
 
-print(select_action(state))
+        state = next_state
 
-"""
-def select_action(state):
-    global steps_done
-    sample = random.random()
-    epsilon_threshold = EPSILON_END + (EPSILON_START - EPSILON_END) * math.exp(-1. * steps_done / EPSILON_DECAY)
-    steps_done += 1
+        optimize_model(memory, policy_net, target_net, optimizer, BATCH_SIZE, GAMMA)
 
-    q_values = policy_net(state)
+        if done:
+            break
 
-    # Generér alle mulige træk på et skakbræt (64 felter x 64 felter)
-    all_moves_idxs = [from_square * 64 + to_square for from_square in range(64) for to_square in range(64)]
-    
-    if sample > epsilon_threshold:
-        # Vælg det bedste træk baseret på Q-værdier
-        best_move_idx = all_moves_idxs[torch.argmax(q_values[0][all_moves_idxs])]
-    else:
-        # Vælg et tilfældigt træk
-        best_move_idx = random.choice(all_moves_idxs)
+    # Update target network
+    if episode % TARGET_UPDATE == 0:
+        target_net.load_state_dict(policy_net.state_dict())
 
-    # Konverter trækket til UCI-format (Universal Chess Interface)
-    from_square = best_move_idx // 64
-    to_square = best_move_idx % 64
-    return chess.Move(from_square, to_square)
-"""
+    print(f"Episode {episode + 1}/{NUM_EPISODES} complete")
+
+print("Training complete")
