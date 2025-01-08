@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import chess
 import chess.pgn
-from collections import defaultdict
 
 
 def board_to_tensor(board: chess.Board) -> torch.Tensor:
@@ -43,15 +42,16 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
             if game is None:
                 break
             
-            # The chess board.
-            board = chess.Board()
+            if game.headers.get("Termination") == "Normal":
+                # The chess board.
+                board = chess.Board()
 
-            # Appends each move and the current board in the game as a tuple to the moves list. Also pushes the move to the board.
-            for move in game.mainline_moves():
-                moves.append((board.copy(), move))
-                board.push(move)
+                # Appends each move and the current board in the game as a tuple to the moves list. Also pushes the move to the board.
+                for move in game.mainline_moves():
+                    moves.append((board.copy(), move))
+                    board.push(move)
 
-            counter += 1
+                counter += 1
             
             print("Iteration:", counter)
 
@@ -61,29 +61,11 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
 
 def move_to_idx(board: chess.Board) -> dict:
     """Takes all the possible moves and promotions and returns a dictionary with the moves as keys and their index as values."""
-    # Calculate the all the possible moves and promotions
-    all_moves = []
+    # Generate all legal moves from the current board state
+    all_moves = [move.uci() for move in board.generate_legal_moves()]
 
-    # The square the piece is moving from.
-    for square_from in chess.SQUARES:
-        # The square the piece is moving to.
-        for square_to in chess.SQUARES:
-            # Check for promotion.
-            for promotion in [None, chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT]:
-                try:
-                    # Construct the move and check if it is legal. If so, append the uci value to all_moves.
-                    move = chess.Move(square_from, square_to, promotion=promotion)
-                    if board.is_legal(move):
-                        all_moves.append(move.uci())
-                except:
-                    # Exception for the case where move could not be constructed with the current parameters.
-                    continue
-
-    # Remove duplicate moves and sort the list.
-    all_moves = sorted(set(all_moves))
-
-    # Make a dictionary with the moves as keys and their indices as values.
-    move_idx = {move: idx for idx, move in enumerate(all_moves)}
+    # Create a dictionary with moves as keys and their indices as values
+    move_idx = {move: idx for idx, move in enumerate(sorted(all_moves))}
 
     return move_idx
 
