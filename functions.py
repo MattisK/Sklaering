@@ -1,20 +1,13 @@
 import torch
-import torch.optim as optim
-import torch.nn.functional as F
-import math
 import numpy as np
 import chess
-import random
-from ReplayMemory import ReplayMemory
-from DQN import DQN
-
-
-steps_done = 0
+import chess.pgn
+from collections import defaultdict
 
 
 def board_to_tensor(board: chess.Board) -> torch.Tensor:
     """
-    Takes the board state and converts it to a one-hot tensor.
+    Takes the board state and converts it to a 12x8x8 one-hot encoded tensor.
     """
     # An 8x8 board with a third dimension of size 12 to separate the pieces into different planes.
     np_board = np.zeros((12, 8, 8))
@@ -29,60 +22,72 @@ def board_to_tensor(board: chess.Board) -> torch.Tensor:
         row, col = divmod(square, 8)
         np_board[plane, row, col] = 1
     
-    # Returns a tensor of the one-hot
+    # Returns a tensor of the one-hot matrix
     return torch.tensor(np_board, dtype=torch.float32)
 
 
-def choose_action(state: torch.Tensor, policy_net: DQN, n_actions: int, epsilon_start=1.0, epsilon_end=0.1, epsilon_decay=200):
-    global steps_done
-    epsilon = epsilon_end + (epsilon_start - epsilon_end) * math.exp(-1. * steps_done / epsilon_decay)
-    steps_done += 1
-
-    if random.random() < epsilon:
-        return torch.tensor([[random.randrange(n_actions)]], dtype=torch.long)  # Random action
-    else:
-        with torch.no_grad():
-            return policy_net(state).argmax(dim=1).view(1, 1)  # Greedy action
-
-
-def optimize_model(memory, policy_net, target_net, optimizer, batch_size, gamma=0.99):
-    if len(memory) < batch_size:
-        return
-
-    # Sample a batch of transitions
-    transitions = memory.sample(batch_size)
-    batch = memory.Transition(*zip(*transitions))
-
-    # Separate non-terminal states
-    non_final_mask = torch.tensor([s is not None for s in batch.next_state], dtype=torch.bool)
-    non_final_next_states = torch.stack([s for s in batch.next_state if s is not None])
+def parse_pgn(pgn_file_path: str, num_games: int) -> None:
+    """
+    Function for extracting the games from a PGN file from the Lichess database and make a list with a board-move pair.
+    """
+    moves = []
+    counter = 0
     
-    # Stack states, actions, and rewards
-    state_batch = torch.stack(batch.state)
-    action_batch = torch.cat(batch.action)
-    reward_batch = torch.cat(batch.reward)
+    with open(pgn_file_path, "r") as pgn_file:
+        # Loop runs while the read game is not None.
+        while counter < num_games:
+            # Load the game.
+            game = chess.pgn.read_game(pgn_file)
 
-    # Compute Q(s, a)
-    state_action_values = policy_net(state_batch).gather(1, action_batch)
+            # Break loop if game is None
+            if game is None:
+                break
+            
+            # The chess board.
+            board = chess.Board()
 
-    # Compute V(s') for non-terminal states
-    next_state_values = torch.zeros(batch_size)
-    if non_final_next_states.size(0) > 0:  # Avoid empty tensor errors
-        next_state_values[non_final_mask] = target_net(non_final_next_states).max(1)[0].detach()
+            # Appends each move and the current board in the game as a tuple to the moves list. Also pushes the move to the board.
+            for move in game.mainline_moves():
+                moves.append((board.copy(), move))
+                board.push(move)
 
-    # Compute expected Q values
-    expected_state_action_values = (next_state_values * gamma) + reward_batch
+            counter += 1
+            
+            print("Iteration:", counter)
 
-    # Compute loss
-    loss = F.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+    print("Done generating moves.")
+    return moves
+    
 
-    # Optimize the model
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+def move_to_idx(board: chess.Board) -> dict:
+    """Takes all the possible moves and promotions and returns a dictionary with the moves as keys and their index as values."""
+    # Calculate the all the possible moves and promotions
+    all_moves = []
+
+    # The square the piece is moving from.
+    for square_from in chess.SQUARES:
+        # The square the piece is moving to.
+        for square_to in chess.SQUARES:
+            # Check for promotion.
+            for promotion in [None, chess.QUEEN, chess.ROOK, chess.BISHOP, chess.KNIGHT]:
+                try:
+                    # Construct the move and check if it is legal. If so, append the uci value to all_moves.
+                    move = chess.Move(square_from, square_to, promotion=promotion)
+                    if board.is_legal(move):
+                        all_moves.append(move.uci())
+                except:
+                    # Exception for the case where move could not be constructed with the current parameters.
+                    continue
+
+    # Remove duplicate moves and sort the list.
+    all_moves = sorted(set(all_moves))
+
+    # Make a dictionary with the moves as keys and their indices as values.
+    move_idx = {move: idx for idx, move in enumerate(all_moves)}
+
+    return move_idx
 
 
-if __name__ == "__main__":
-    board = chess.Board()
-
-    print(board_to_tensor(board))
+def encode_move(move: chess.Move, move_idx: dict) -> int:
+    """Returns the index in the move_idx dictionary for a given move, so each move has a unique index."""
+    return move_idx[move.uci()]
