@@ -2,6 +2,7 @@ import torch
 from ChessModel import ChessModel
 import chess
 from functions import board_to_tensor, move_to_idx
+import random
 
 
 # Load the model.
@@ -12,7 +13,7 @@ model.load_state_dict(torch.load("chess_model.pth"))
 board = chess.Board()
 
 iteration = 0
-while True:
+while not board.is_game_over():
     iteration += 1
 
     # Board tensor.
@@ -27,8 +28,6 @@ while True:
         outputs = model(input_tensor)
 
         top_k = torch.topk(outputs, k=5, dim=1)
-
-        # Finds the index with the highest value in outputs.
         predicted_indices = top_k.indices[0].tolist()
         print(predicted_indices)
 
@@ -36,6 +35,8 @@ while True:
     idx_to_move = {idx: move for move, idx in move_idx.items()}
 
     print(idx_to_move)
+
+    bool_list = []
 
     for predicted_idx in predicted_indices:
         if predicted_idx in idx_to_move:
@@ -47,6 +48,18 @@ while True:
                 print(predicted_move)
                 board.push(predicted_move)
                 print(board)
+                bool_list.append(True)
                 break
     else:
-        break
+        if not any(bool_list):
+            random_move = random.choice(list(idx_to_move.keys()))
+            random_move_uci = idx_to_move[random_move]
+            random_move_final = chess.Move.from_uci(random_move_uci)
+            board.push(random_move_final)
+            print(board)
+
+    print(board.is_game_over())
+    print(board.is_checkmate())
+    print(board.is_fifty_moves())
+    print(board.is_variant_draw())
+    print(board.can_claim_draw())
