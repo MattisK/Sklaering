@@ -6,6 +6,13 @@ from ChessModel import ChessModel
 import os
 import numpy as np
 
+# Use cuda cores if available.
+device = torch.device(
+    "cuda" if torch.cuda.is_available() else
+    "mps" if torch.backends.mps.is_available() else
+    "cpu"
+)
+
 # Load the complete list of possible moves for each board state.
 moves = np.load("moves.npy", allow_pickle=True)
 
@@ -18,7 +25,7 @@ train_data = ChessDataset(moves)
 train_loader = DataLoader(train_data, batch_size=32, shuffle=True)
 
 # Initiate model and check if a saved model already exists.
-model = ChessModel()
+model = ChessModel().to(device)
 if os.path.exists("chess_model.pth"):
     model.load_state_dict(torch.load("chess_model.pth"))
 

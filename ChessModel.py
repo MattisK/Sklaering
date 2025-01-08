@@ -27,13 +27,13 @@ class ChessModel(nn.Module):
         
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Required for the neural network."""
+        """Defines the flow through the network. Required for the neural network. Returns a tensor of shape (batch_size, 4672),
+        where each row is a board in the batch, and each column is a numerical value for a specific move."""
         x = self.conv(x)
 
         # Reshape tensor
         x = x.view(x.size(0), -1)
 
         x = self.fc(x)
-        
+
         return x
-    

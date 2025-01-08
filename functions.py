@@ -26,7 +26,7 @@ def board_to_tensor(board: chess.Board) -> torch.Tensor:
     return torch.tensor(np_board, dtype=torch.float32)
 
 
-def parse_pgn(pgn_file_path: str, num_games: int) -> None:
+def parse_pgn(pgn_file_path: str, num_games: int) -> list:
     """
     Function for extracting the games from a PGN file from the Lichess database and make a list with a board-move pair.
     """
@@ -39,7 +39,7 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> None:
             # Load the game.
             game = chess.pgn.read_game(pgn_file)
 
-            # Break loop if game is None
+            # Break loop if game is None.
             if game is None:
                 break
             

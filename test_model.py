@@ -15,7 +15,7 @@ iteration = 0
 while True:
     iteration += 1
 
-    # Board tensor
+    # Board tensor.
     input_tensor = board_to_tensor(board).unsqueeze(0)
 
     # Put model in evaluation mode.
@@ -26,19 +26,27 @@ while True:
         # Feed the board tensor to the model (predicted moves).
         outputs = model(input_tensor)
 
-        # Finds the index with the highest value in outputs.
-        predicted_idx = torch.argmax(outputs, dim=1).item()
+        top_k = torch.topk(outputs, k=5, dim=1)
 
-    # Convert the predicted index back into a move.
+        # Finds the index with the highest value in outputs.
+        predicted_indices = top_k.indices[0].tolist()
+        print(predicted_indices)
+
     move_idx = move_to_idx(board)
     idx_to_move = {idx: move for move, idx in move_idx.items()}
-    predicted_move_uci = idx_to_move[predicted_idx]
-    predicted_move = chess.Move.from_uci(predicted_move_uci)
 
-    # Print predicted move if it is legal and make the play on the board. If it is not legal, brak the loop.
-    if predicted_move in board.legal_moves:
-        print(predicted_move)
-        board.push(predicted_move)
+    print(idx_to_move)
+
+    for predicted_idx in predicted_indices:
+        if predicted_idx in idx_to_move:
+            predicted_move_uci = idx_to_move[predicted_idx]
+            predicted_move = chess.Move.from_uci(predicted_move_uci)
+
+            # Print predicted move if it is legal and make the play on the board.
+            if predicted_move in board.legal_moves:
+                print(predicted_move)
+                board.push(predicted_move)
+                print(board)
+                break
     else:
-        print("Ended at:", iteration)
         break
