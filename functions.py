@@ -2,6 +2,8 @@ import torch
 import numpy as np
 import chess
 import chess.pgn
+import random
+from ChessModel import ChessModel
 
 
 def board_to_tensor(board: chess.Board) -> torch.Tensor:
@@ -73,3 +75,39 @@ def move_to_idx(board: chess.Board) -> dict:
 def encode_move(move: chess.Move, move_idx: dict) -> int:
     """Returns the index in the move_idx dictionary for a given move, so each move has a unique index."""
     return move_idx[move.uci()]
+
+
+def get_model_move(board: chess.Board, model: ChessModel) -> None:
+    """Gets the move for the model."""
+    # Board tensor.
+    input_tensor = board_to_tensor(board).unsqueeze(0)
+
+    # Disables gradient computation for memory efficiency and shorter duration.
+    with torch.no_grad():
+        # Feed the board tensor to the model (predicted moves).
+        outputs = model(input_tensor)
+
+        top_k = torch.topk(outputs, k=5, dim=1)
+        predicted_indices = top_k.indices[0].tolist()
+
+    move_idx = move_to_idx(board)
+    idx_to_move = {idx: move for move, idx in move_idx.items()}
+
+    bool_list = []
+
+    for predicted_idx in predicted_indices:
+        if predicted_idx in idx_to_move:
+            predicted_move_uci = idx_to_move[predicted_idx]
+            predicted_move = chess.Move.from_uci(predicted_move_uci)
+
+            # Print predicted move if it is legal and make the play on the board.
+            if predicted_move in board.legal_moves:
+                return predicted_move
+            else:
+                bool_list.append(True)
+        else:
+            if all(bool_list):
+                random_move = random.choice(list(idx_to_move.keys()))
+                random_move_uci = idx_to_move[random_move]
+                random_move_final = chess.Move.from_uci(random_move_uci)
+                return random_move_final

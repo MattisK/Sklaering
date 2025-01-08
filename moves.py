@@ -6,5 +6,5 @@ import numpy as np
 
 
 pgn_file_path = "lichess_db_standard_rated_2014-09.pgn"
-moves = parse_pgn(pgn_file_path, 10)
+moves = parse_pgn(pgn_file_path, 100)
 np.save("moves.npy", moves, allow_pickle=True)
