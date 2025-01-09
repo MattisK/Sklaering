@@ -3,17 +3,19 @@ import torch.nn as nn
 
 
 class ChessModel(nn.Module):
-    """Convolution Neural Network (CNN) for the chess model."""
+    """
+    Convolution Neural Network (CNN) for the chess model.
+    """
     def __init__(self) -> None:
         super(ChessModel, self).__init__()
         # Convolutional layers.
         self.conv = nn.Sequential(
             # 12 channels in the input tensor from board_to_tensor, and 8x8=64 convolutional filters (one for each square in the chess board).
-            nn.Conv2d(12, 64, kernel_size=3, padding=1),
+            nn.Conv2d(12, 64, kernel_size=3),
             # Our non-linear activation funtion is ReLU.
             nn.ReLU(),
             # 2x64=128 convolutional filters.
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.Conv2d(64, 128, kernel_size=3),
             nn.ReLU()
         )
         # Fully connected (fc) layers.

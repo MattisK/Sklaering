@@ -5,6 +5,7 @@ from ChessDataset import ChessDataset
 from ChessModel import ChessModel
 import os
 import numpy as np
+import time
 
 # Use cuda cores if available.
 device = torch.device(
@@ -36,6 +37,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # Training loop. Executes 10 epochs.
+time_var = time.time()
 for epoch in range(10):
     # Iterate over batches of data from train_loader.
     for board_states, target_moves in train_loader:
@@ -45,7 +47,7 @@ for epoch in range(10):
         # Inputs the board states to the model to get predicted moves.
         outputs = model(board_states)
 
-        # Calulates the loss (how far the prdecitions are from the true labels)
+        # Calulates the loss (how far the predictions are from the true labels)
         loss = criterion(outputs, target_moves)
         
         # Gradients for all models with respect to loss.
@@ -56,5 +58,7 @@ for epoch in range(10):
 
     print(f"Epoch {epoch+1}, Loss: {loss.item()}")
 
-# Save the model's parameters.
-torch.save(model.state_dict(), "chess_model.pth")
+    # Save the model's parameters.
+    torch.save(model.state_dict(), "chess_model.pth")
+
+print(f"Done training. Took {time.time() - time_var} seconds.")

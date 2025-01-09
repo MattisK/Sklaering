@@ -4,6 +4,8 @@ import chess
 import chess.pgn
 import random
 from ChessModel import ChessModel
+import time
+import os
 
 
 def board_to_tensor(board: chess.Board) -> torch.Tensor:
@@ -33,7 +35,7 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
     """
     moves = []
     counter = 0
-    
+
     with open(pgn_file_path, "r") as pgn_file:
         # Loop runs while the read game is not None.
         while counter < num_games:
@@ -44,7 +46,7 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
             if game is None:
                 break
             
-            if game.headers.get("Termination") == "Normal":
+            if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0":
                 # The chess board.
                 board = chess.Board()
 
@@ -54,17 +56,20 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
                     board.push(move)
 
                 counter += 1
-            
-            print("Iteration:", counter)
+                print("Iteration:", f"{counter}/{num_games}")
 
-    print("Done generating moves.")
+    print(f"Done generating moves.")
     return moves
     
 
 def move_to_idx(board: chess.Board) -> dict:
-    """Takes all the possible moves and promotions and returns a dictionary with the moves as keys and their index as values."""
+    """
+    Takes all the possible moves and promotions and returns a dictionary with the moves as keys and their index as values.
+    """
     # Generate all legal moves from the current board state
     all_moves = [move.uci() for move in board.generate_legal_moves()]
+
+    print(all_moves)
 
     # Create a dictionary with moves as keys and their indices as values
     move_idx = {move: idx for idx, move in enumerate(sorted(all_moves))}
@@ -73,12 +78,16 @@ def move_to_idx(board: chess.Board) -> dict:
 
 
 def encode_move(move: chess.Move, move_idx: dict) -> int:
-    """Returns the index in the move_idx dictionary for a given move, so each move has a unique index."""
+    """
+    Returns the index in the move_idx dictionary for a given move, so each move has a unique index.
+    """
     return move_idx[move.uci()]
 
 
 def get_model_move(board: chess.Board, model: ChessModel) -> None:
-    """Gets the move for the model."""
+    """
+    Gets the move for the model.
+    """
     # Board tensor.
     input_tensor = board_to_tensor(board).unsqueeze(0)
 
@@ -100,14 +109,20 @@ def get_model_move(board: chess.Board, model: ChessModel) -> None:
             predicted_move_uci = idx_to_move[predicted_idx]
             predicted_move = chess.Move.from_uci(predicted_move_uci)
 
-            # Print predicted move if it is legal and make the play on the board.
+            # Return predicted move if it is legal and make the play on the board.
             if predicted_move in board.legal_moves:
-                return predicted_move
+                return predicted_move, 0
             else:
                 bool_list.append(True)
         else:
             if all(bool_list):
+                global random_counter
+                random_counter = 1
                 random_move = random.choice(list(idx_to_move.keys()))
                 random_move_uci = idx_to_move[random_move]
                 random_move_final = chess.Move.from_uci(random_move_uci)
-                return random_move_final
+                return random_move_final, random_counter
+
+
+board = chess.Board()
+move_to_idx(board)
