@@ -9,7 +9,7 @@ class ChessModel(nn.Module):
     def __init__(self) -> None:
         super(ChessModel, self).__init__()
         # Convolutional layers.
-        self.conv = nn.Sequential(
+        self.conv = nn.Sequential( # TODO: Add more convolutional layers, potentially
             # 12 channels in the input tensor from board_to_tensor, and 8x8=64 convolutional filters (one for each square in the chess board).
             nn.Conv2d(12, 64, kernel_size=3),
             # Our non-linear activation funtion is ReLU.
@@ -28,7 +28,7 @@ class ChessModel(nn.Module):
         )
         
     
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor: # TODO: Maybe make it so, that it only returns an evaluation of the board state.
         """Defines the flow through the network. Required for the neural network. Returns a tensor of shape (batch_size, 4672),
         where each row is a board in the batch, and each column is a numerical value for a specific move."""
         x = self.conv(x)

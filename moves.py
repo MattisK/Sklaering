@@ -4,7 +4,7 @@ import time
 
 
 """Generates the moves from PGN file games and saves it to a separate file."""
-
+# TODO: memory optimise this also
 start_time = time.time()
 pgn_file_path = "lichess_db_standard_rated_2014-09.pgn"
 moves = parse_pgn(pgn_file_path, 50000)

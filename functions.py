@@ -3,6 +3,9 @@ import numpy as np
 import chess
 import chess.pgn
 import random
+
+from jinja2.lexer import TOKEN_DOT
+
 from ChessModel import ChessModel
 import time
 import os
@@ -33,7 +36,7 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
     """
     Function for extracting the games from a PGN file from the Lichess database and make a list with a board-move pair.
     """
-    moves = []
+    moves = []# TODO: memory optimise this and maybe, add a try-except block to catch errors
     counter = 0
 
     with open(pgn_file_path, "r") as pgn_file:
@@ -68,7 +71,7 @@ def move_to_idx(board: chess.Board) -> dict:
     """
     # Generate all legal moves from the current board state
     all_moves = [move.uci() for move in board.generate_legal_moves()]
-
+    #TODO: check if this is where the 'check' error is
     print(all_moves)
 
     # Create a dictionary with moves as keys and their indices as values
@@ -84,7 +87,7 @@ def encode_move(move: chess.Move, move_idx: dict) -> int:
     return move_idx[move.uci()]
 
 
-def get_model_move(board: chess.Board, model: ChessModel) -> None:
+def get_model_move(board: chess.Board, model: ChessModel) -> tuple[chess.Move, int]:
     """
     Gets the move for the model.
     """
@@ -92,13 +95,14 @@ def get_model_move(board: chess.Board, model: ChessModel) -> None:
     input_tensor = board_to_tensor(board).unsqueeze(0)
 
     # Disables gradient computation for memory efficiency and shorter duration.
-    with torch.no_grad():
+    with torch.no_grad(): #TODO: maybe do it with gradient so we can see if we overfit
         # Feed the board tensor to the model (predicted moves).
         outputs = model(input_tensor)
 
-        top_k = torch.topk(outputs, k=5, dim=1)
-        predicted_indices = top_k.indices[0].tolist()
+        top_k = torch.topk(outputs, k=5, dim=1) #TODO: review this to make sure it doesnt make any random moves
+        predicted_indices = top_k.indices[0].tolist() #TODO: understand top_k better
 
+    # Get the index, move dictionary. (by switching the keys and values from move_idx)
     move_idx = move_to_idx(board)
     idx_to_move = {idx: move for move, idx in move_idx.items()}
 
@@ -115,14 +119,10 @@ def get_model_move(board: chess.Board, model: ChessModel) -> None:
             else:
                 bool_list.append(True)
         else:
-            if all(bool_list):
+            if all(bool_list): # TODO: remake this (random moves)
                 global random_counter
                 random_counter = 1
                 random_move = random.choice(list(idx_to_move.keys()))
                 random_move_uci = idx_to_move[random_move]
                 random_move_final = chess.Move.from_uci(random_move_uci)
                 return random_move_final, random_counter
-
-
-board = chess.Board()
-move_to_idx(board)
