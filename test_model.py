@@ -43,9 +43,9 @@ def play_game(board: chess.Board) -> int:
 
 
 results = {"White": 0, "Black": 0, "Draw": 0}
-num_games = 10
+num_games = 100
 for i in range(num_games):
-    print("Game:", i)
+    print("Game:", i + 1)
     play_game(board)
     result = board.result()
     if result == "1-0":

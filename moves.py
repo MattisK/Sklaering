@@ -7,6 +7,6 @@ import time
 # TODO: memory optimise this also
 start_time = time.time()
 pgn_file_path = "lichess_db_standard_rated_2014-09.pgn"
-moves = parse_pgn(pgn_file_path, 50000)
+moves = parse_pgn(pgn_file_path, 10000)
 np.save("moves.npy", moves, allow_pickle=True)
 print(f"Done making moves. Took {time.time() - start_time} seconds.")

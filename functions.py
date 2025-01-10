@@ -72,7 +72,6 @@ def move_to_idx(board: chess.Board) -> dict:
     # Generate all legal moves from the current board state
     all_moves = [move.uci() for move in board.generate_legal_moves()]
     #TODO: check if this is where the 'check' error is
-    print(all_moves)
 
     # Create a dictionary with moves as keys and their indices as values
     move_idx = {move: idx for idx, move in enumerate(sorted(all_moves))}
@@ -107,7 +106,7 @@ def get_model_move(board: chess.Board, model: ChessModel) -> tuple[chess.Move, i
     idx_to_move = {idx: move for move, idx in move_idx.items()}
 
     bool_list = []
-
+    
     for predicted_idx in predicted_indices:
         if predicted_idx in idx_to_move:
             predicted_move_uci = idx_to_move[predicted_idx]
@@ -115,6 +114,7 @@ def get_model_move(board: chess.Board, model: ChessModel) -> tuple[chess.Move, i
 
             # Return predicted move if it is legal and make the play on the board.
             if predicted_move in board.legal_moves:
+                bool_list.append(False)
                 return predicted_move, 0
             else:
                 bool_list.append(True)

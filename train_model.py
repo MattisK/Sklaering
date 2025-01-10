@@ -36,9 +36,10 @@ criterion = nn.CrossEntropyLoss()
 # Optimization algorithm with learning rate 0.001.
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
-# Training loop. Executes 10 epochs.
+# Training loop. Executes 40 epochs.
 start_time = time.time()
-for epoch in range(10): # TODO: maybe up epochs
+print("Starting epochs...")
+for epoch in range(40): # TODO: maybe up epochs
     # Iterate over batches of data from train_loader.
     for board_states, target_moves in train_loader:
         # Reset the gradients from previous iteration.
@@ -59,6 +60,7 @@ for epoch in range(10): # TODO: maybe up epochs
     print(f"Epoch {epoch+1}, Loss: {loss.item()}")
 
     # Save the model's parameters.
+    print("Saving model")
     torch.save(model.state_dict(), "chess_model.pth")
 
 print(f"Done training. Took {time.time() - start_time} seconds.")
