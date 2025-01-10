@@ -2,13 +2,8 @@ import torch
 import numpy as np
 import chess
 import chess.pgn
-import random
-
-from jinja2.lexer import TOKEN_DOT
 
 from ChessModel import ChessModel
-import time
-import os
 
 
 def board_to_tensor(board: chess.Board) -> torch.Tensor:
@@ -54,7 +49,7 @@ def parse_pgn(pgn_file_path: str, num_games: int) -> list:
                 board = chess.Board()
 
                 # Appends each move and the current board in the game as a tuple to the moves list. Also pushes the move to the board.
-                for move in game.mainline_moves():
+                for move in game.mainline_moves():                  
                     moves.append((board.copy(), move))
                     board.push(move)
 
@@ -86,19 +81,46 @@ def encode_move(move: chess.Move, move_idx: dict) -> int:
     return move_idx[move.uci()]
 
 
-def get_model_move(board: chess.Board, model: ChessModel) -> tuple[chess.Move, int]:
+def get_model_move(board: chess.Board, model: ChessModel) -> chess.Move:
     """
-    Gets the move for the model.
+    Gets all legal moves for a position and returns the move with the highest predicted value from the model.
     """
     # Board tensor.
-    input_tensor = board_to_tensor(board).unsqueeze(0)
+    input_tensor = board_to_tensor(board).unsqueeze(0) # gets tensor with the dimensions 1x12x8x8
+    
 
+    # find all legal moves for a board state
+    legal_moves = [move.uci() for move in board.legal_moves] # gets all legal moves for the board
+    
+    max_move = legal_moves[0]  # sets the best move to None
+    temp_board = board.copy() # copy the board
+    temp_board.push(chess.Move.from_uci(legal_moves[0])) # pushes the first move to the board
+    max_value = model(board_to_tensor(temp_board).unsqueeze(0)) # sets the value to the first move
+    print(float(max_value.squeeze(0)))
+    
+    for move in legal_moves: # for each move in legal moves 
+        
+        # get the board state of the move
+        temp = board.copy()
+        move_to_board = chess.Move.from_uci(move)
+        temp.push(move_to_board) 
+        print(move, ":", float(model(board_to_tensor(temp).unsqueeze(0))))
+        
+        # if the value of the move is better than the previous move
+        if float(model(board_to_tensor(temp).unsqueeze(0))) > float(max_value):
+            max_move = move # sets the move to the best move
+            max_value = float(model(board_to_tensor(temp).unsqueeze(0))) # sets the value to the best value
+            
+    print(max_move)
+    return chess.Move.from_uci(max_move)
+    
+    """    
     # Disables gradient computation for memory efficiency and shorter duration.
     with torch.no_grad(): #TODO: maybe do it with gradient so we can see if we overfit
         # Feed the board tensor to the model (predicted moves).
         outputs = model(input_tensor)
 
-        top_k = torch.topk(outputs, k=5, dim=1) #TODO: review this to make sure it doesnt make any random moves
+        top_k = torch.topk(outputs, k=1, dim=1) #TODO: review this to make sure it doesnt make any random moves
         predicted_indices = top_k.indices[0].tolist() #TODO: understand top_k better
 
     # Get the index, move dictionary. (by switching the keys and values from move_idx)
@@ -115,14 +137,7 @@ def get_model_move(board: chess.Board, model: ChessModel) -> tuple[chess.Move, i
             # Return predicted move if it is legal and make the play on the board.
             if predicted_move in board.legal_moves:
                 bool_list.append(False)
-                return predicted_move, 0
+                return predicted_move
             else:
                 bool_list.append(True)
-        else:
-            if all(bool_list): # TODO: remake this (random moves)
-                global random_counter
-                random_counter = 1
-                random_move = random.choice(list(idx_to_move.keys()))
-                random_move_uci = idx_to_move[random_move]
-                random_move_final = chess.Move.from_uci(random_move_uci)
-                return random_move_final, random_counter
+        """

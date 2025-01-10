@@ -2,72 +2,57 @@ import torch
 import torch.nn as nn
 
 
+# Use cuda cores if available.
+device = torch.device(
+    "cuda" if torch.cuda.is_available() else
+    "mps" if torch.backends.mps.is_available() else
+    "cpu"
+)
+
+
 class ChessModel(nn.Module):
     """
     Convolution Neural Network (CNN) for the chess model.
     """
     def __init__(self) -> None:
         super(ChessModel, self).__init__()
-        # Convolutional layers.
-        self.conv = nn.Sequential( # TODO: Add more convolutional layers, potentially
-            
+        
+        """
+        A simplified neural network to evaluate a chess board.
+        Input: 12x8x8 board state
+        Output
+        """
+        
+        self.net = nn.Sequential( # TODO: Add more convolutional layers, potentially
+            # Convolutional layers.
             # Block 1
-            nn.Conv2d(12, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(12, 64, kernel_size=3, padding=1), # input 12x8x8 -> output 64x8x8
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 8x8 -> 4x4
+            nn.Dropout(p=0.05),
 
             # Block 2
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1), #input 64x8x8 -> output 128x8x8
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),  # 4x4 -> 2x2
+            nn.Dropout(p=0.05),
+            nn.AvgPool2d(kernel_size=2, stride=1),  # input 128x8x8 -> output 128x7x7
 
             # Block 3
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1), # input 128x7x7 -> output 256x7x7
             nn.ReLU(),
+            nn.Dropout(p=0.05),
+            nn.MaxPool2d(kernel_size=2, stride=1),  # input 256x7x7 -> output 256x6x6
 
-            # Global Average Pooling
-            nn.AdaptiveAvgPool2d(output_size=(1, 1))  # 2x2 -> 1x1   
-        )
-        
-        """# 12 channels in the input tensor from board_to_tensor, and 8x8=64 convolutional filters (one for each square in the chess board).
-            nn.Conv2d(12, 12*64, kernel_size=3),
-            # Our non-linear activation funtion is ReLU.
-            nn.ReLU(),
-            # 2x64=128 convolutional filters.
-            nn.Conv2d(12*64, 12*64*9),
-            nn.ReLU(),
-            # 2x128 = 256 convolutional filters.
-            nn.Conv2d(12*64*9, 12*64, kernel_size=2),
-            nn.ReLU()"""
-        
-        self.fc = nn.Sequential(
-            nn.Linear(256, 1024),  # Fra 256 (output fra pooling) til 1024 neuroner
-            nn.ReLU(),
-            nn.Dropout(p=0.1),  # Dropout for at undgå overfitting
-            nn.Linear(1024, 4672)  # Output-dimensionen svarer til antallet af mulige træk
-        )
-        """
-        # Fully connected (fc) layers.
-        self.fc = nn.Sequential(
-            # 128 for each of the squares in the chess grid.
-            nn.Linear(128 * 8 * 8, 1024),
-            nn.ReLU(),
-            # 4672 is the number of possible moves (legal moves, including promotions).
-            nn.Linear(1024, 4672)
-        )
-        """
+            # Flatten
+            nn.Flatten(), # input 256x6x6 -> output 9216
+            
+            nn.Linear(9216, 1),  # Fra 256 (output fra pooling) til 1024 neuroner
+            nn.LeakyReLU(1), # TODO: change this to allow negative values
+            nn.Dropout(p=0.05),  # Dropout for at undgå overfitting
+        ).to(device)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor: # TODO: Maybe make it so, that it only returns an evaluation of the board state.
         """Defines the flow through the network. Required for the neural network. Returns a tensor of shape (batch_size, 4672),
         where each row is a board in the batch, and each column is a numerical value for a specific move."""
-        x = self.conv(x)
-
-        # Reshape tensor
-        x = x.view(x.size(0), -1)
-
-        x = self.fc(x)
+        x = self.net(x)
 
         return x
