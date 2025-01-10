@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import chess
 import chess.pgn
-
+from stockfish import Stockfish
 from ChessModel import ChessModel
 
 
@@ -141,3 +141,100 @@ def get_model_move(board: chess.Board, model: ChessModel) -> chess.Move:
             else:
                 bool_list.append(True)
         """
+
+def reward(board: chess.Board, move, method: str) -> float:
+    """
+    Function for evaluating the reward of a given board state.
+    Method: material, check, stockfish or human.
+    """
+    #convert move to board
+    temp_board = board.copy()
+    temp_board.push(move)
+    if method == "material":
+        return reward_material(board, temp_board)
+    elif method == "check":
+        return reward_check(board, temp_board)
+    elif method == "stockfish":
+        return reward_stockfish(board, temp_board)
+    elif method == "human":
+        return reward_human(board, temp_board)
+    else:
+        raise ValueError("Invalid method. Choose between 'material', 'check', 'stockfish', or 'human'.")
+
+def reward_material(board: chess.Board, next_board: chess.Board) -> float:
+    """
+    Function for evaluating the reward of a given board state based on material.
+    """
+    def material_value(board: chess.Board) -> int:
+        material_score = 0
+        piece_values = {
+            chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3,
+            chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0  # King's value is not counted for material evaluation
+        }
+        for piece_type in piece_values:
+            material_score += len(board.pieces(piece_type, chess.WHITE)) * piece_values[piece_type]
+            material_score -= len(board.pieces(piece_type, chess.BLACK)) * piece_values[piece_type]
+        return material_score
+
+    return material_value(next_board) - material_value(board)
+
+def reward_check(board: chess.Board, next_board: chess.Board) -> float:
+    """
+    Function for evaluating the reward of a given board state based on check and checkmate.
+    """
+    if next_board.is_checkmate():
+        return 10
+    elif next_board.is_check():
+        return 1
+    else:
+        return 0
+
+def reward_stockfish(board: chess.Board, next_board: chess.Board) -> float:
+    """
+    Function for evaluating the reward of a given board state based on Stockfish evaluation.
+    """
+    # convert the nextboard to a stockfish board
+    stockfish_path = "C:/Users/Mattis/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    "C:/Users/Mattis/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+
+    stockfish = Stockfish(path=stockfish_path, depth=15)
+    stockfish.set_fen_position(fen_position=next_board.fen())
+    eval = stockfish.get_evaluation()
+
+    if eval["type"] == "cp":  # Centipawn score the amount of pawns the engine thinks it is ahead
+        if eval["value"] > 0:
+            return 1
+        elif eval["value"] < 0:
+            return -1
+        else:
+            return 0
+
+    elif eval["type"] == "mate":  # Mate in N moves
+        # Assign a very high positive/negative reward for mate
+        if eval["value"] > 0:  # Positive means White is winning
+            return 10
+        else:  # Negative means Black is winning
+            return -10
+    else:
+        # Default fallback in case of unexpected evaluation type
+        return 0.0
+
+
+def reward_human(board: chess.Board, next_board: chess.Board) -> float:
+    """
+    Function for evaluating the reward of a given board state based on human evaluation.
+    Assume that there is a chess board for the given board state.
+    """
+    try:
+        moves = np.load("moves.npy", allow_pickle=True)  # read data
+    except FileNotFoundError:
+        print("Error: moves.npy file not found.")
+        return 0.0
+
+    next_fen = board.fen()  # FEN for the next board
+    # find board for the move that was made and check if that board is the same as the next board
+    for move_data in moves:
+        pass
+
+    return 0.0  # Default, hvis ingen match findes
+
