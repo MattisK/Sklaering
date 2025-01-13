@@ -1,61 +1,80 @@
-import torch.nn as nn
-import torch
-from torch.utils.data import DataLoader
 from ChessDataset import ChessDataset
-from ChessModel import ChessModel
+from ChessCNN import ChessCNN
+import torch.optim
+import torch.nn as nn
+from torch.utils.data import DataLoader
 import os
-import numpy as np
-import time
- # TODO: look into weight decay or something similar to prevent overfitting
 
-# Load the complete list of possible moves for each board state.
-moves = np.load("moves.npy", allow_pickle=True)
 
-# Create input tensors and unique labels for each move.
-train_data = ChessDataset(moves)
+def train(model: ChessCNN, dataloader: DataLoader, optimizer: torch.optim.Adam, criterion_policy: nn.CrossEntropyLoss, criterion_value: nn.MSELoss, epochs: int) -> None:
+    """Trains the model."""
+    # Set the model to training mode.
+    model.train()
 
-# Wraps an iterable around the Dataset (train_data) to enable easy access to the samples.
-# 32 board states per training iteration.
-# Ensures data is randomly shuffled during training.
-train_loader = DataLoader(train_data, batch_size=75, shuffle=True) # TODO: look at the batch size
+    # Training loop.
+    for epoch in range(epochs):
+        # Keeps track of the loss
+        total_loss = 0.0
 
-# Initiate model and check if a saved model already exists.
-model = ChessModel()
-if os.path.exists("chess_model.pth"): # TODO: maybe make it so that we have an option to start from scratch
-    model.load_state_dict(torch.load("chess_model.pth"))
+        # Fetches a sample from the dataloader which is an instance of 'DataLoader'.
+        for boards, moves, results in dataloader:
+            # The samples fetched.
+            boards = boards.to(device)
+            moves = moves.to(device).long()
+            results = results.to(device)
 
-# Loss function.
-criterion = nn.MSELoss()
+            # Reset the gradients from previous iteration.
+            optimizer.zero_grad()
 
-# Optimization algorithm with learning rate 0.01.
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-5)
+            # Get the policy and value from the model for a given board state.
+            policy, value = model(boards)
 
-# Training loop. Executes 20 epochs.
-start_time = time.time()
-print("Starting epochs...")
-for epoch in range(20): # TODO: maybe up epochs
-    # Iterate over batches of data from train_loader.
-    for board_states, target_moves in train_loader:
-        # Reset the gradients from previous iteration.
-        optimizer.zero_grad()
+            # Cross entropy loss function for the policy, since this is a logsoftmax function.
+            loss_policy = criterion_policy(policy, moves)
 
-        # Inputs the board states to the model to get predicted moves.
-        outputs = model(board_states)
+            # Mean squared error loss function for the value, since this is a tanh function.
+            loss_value = criterion_value(value.squeeze(), results)
 
-        # Calulates the loss (how far the predictions are from the true labels)
-        loss = criterion(outputs, target_moves.float())
+            # The loss for the model is the total loss.
+            loss = loss_policy + loss_value
+            
+            # Gradients for all models with respect to loss.
+            loss.backward()
+
+            # Adjust model parameters using the gradients.
+            optimizer.step()
+
+            # Update the total loss.
+            total_loss += loss.item()
         
-        # Gradients for all models with respect to loss.
-        loss.backward() # TODO: understand this better especially in correlation with zero_grad and no_grad
+        print(f"Epoch: {epoch + 1}/{epochs}, loss: {total_loss / len(dataloader)}")
 
-        # Adjust model parameters using the gradients.
-        optimizer.step()
+        # Save the model.
+        torch.save(model.state_dict(), "chess_model.pth")
 
-    print(f"Epoch {epoch+1}, Loss: {loss.item()}")
 
-    # Save the model's parameters.
-    print("Saving model")
-    torch.save(model.state_dict(), "chess_model.pth")
-    print("Done saving")
+if __name__ == "__main__":
+    pgn_file = "lichess_db_standard_rated_2014-09.pgn"
+    batch_size = 64
+    learning_rate = 0.001
+    epochs = 100
 
-print(f"Done training. Took {time.time() - start_time} seconds.")
+    # Checks if cuda cores are available.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Load dataset and parse it to a DataLoader instance with a given batch size and shuffling.
+    dataset = ChessDataset(pgn_file)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+    # Initialize the model. If one already exists load that model.
+    model = ChessCNN().to(device)
+    if os.path.exists("chess_model.pth"):
+        model.load_state_dict(torch.load("chess_model.pth"))
+
+    # Optimizer and loss functions.
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    criterion_policy = nn.CrossEntropyLoss()
+    criterion_value = nn.MSELoss()
+
+    # Train the model.
+    train(model, dataloader, optimizer, criterion_policy, criterion_value, epochs)
