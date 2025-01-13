@@ -7,10 +7,15 @@ from functions import encode_board, encode_move
 
 
 class ChessDataset(Dataset):
+    # The ChessDataset class is designed to handle and preprocess chess game data for use in machine learning models. It inherits from the abstract class Dataset, which is typically used in the PyTorch framework for handling datasets.
     """
     A class that inherits from the abstract class 'Dataset',
     which makes the model store the samples and their corresponding labels. 
     """
+    # Takes a path to a PGN (Portable Game Notation) file as input.
+    # Initializes the pgn_path attribute with the provided path.
+    # Calls the load_games method to load chess games from the PGN file and stores them in the games attribute.
+
     def __init__(self, pgn_path: str) -> None:
         """
         Initialize the PGN-path and the list of games.
@@ -18,7 +23,8 @@ class ChessDataset(Dataset):
         self.pgn_path = pgn_path
         self.games = self.load_games()
 
-
+    # Opens the PGN file and reads up to 100 chess games.
+    # Stores each game in a list and returns this list.
     def load_games(self) -> list[chess.pgn.Game]:
         """Load a hardcoded amount of games from a PGN file. Returns a list of all games loaded."""
         games = []
@@ -48,6 +54,13 @@ class ChessDataset(Dataset):
         """
         return len(self.games)
     
+    # Takes an index idx and retrieves the corresponding game from the games list.
+    # Extracts the board state and moves for the game.
+    # If there are no moves, it recursively calls itself with the next index.
+    # Determines the result of the game (1.0 for white win, -1.0 for black win, 0.0 for draw) and assigns this result to all moves.
+    # Randomly selects a move and its corresponding board state and result.
+    # Encodes the board state and move into tensors.
+    # Returns a tuple of tensors representing the board state, move, and result.
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
