@@ -1,5 +1,4 @@
 import time
-
 import chess
 import datetime
 from ChessCNN import ChessCNN
@@ -9,6 +8,11 @@ import torch
 import pandas as pd
 from scipy.stats import ttest_ind, t
 import numpy as np
+
+# TODO: shorten ai times
+# TODO: add comments
+# TODO: add more tests fx random , worstfish  etc.
+
 
 def compare_versions_with_ttests(file_path: str):
     """Sammenligner versioner i filen parvist og udskriver forskelle, t-tests og 95% konfidensintervaller."""
