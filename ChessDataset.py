@@ -68,7 +68,7 @@ class ChessDataset(Dataset):
         # Randomly selects a move and its corresponding board state and result.
         # Encodes the board state and move into tensors.
         # Returns a tuple of tensors representing the board state, move, and result.
-        
+
         # Load a game and the board state for that game.
         game = self.games[idx]
         board = game.board()
