@@ -7,7 +7,8 @@ from functions import encode_board, encode_move
 
 
 class ChessDataset(Dataset):
-    # The ChessDataset class is designed to handle and preprocess chess game data for use in machine learning models. It inherits from the abstract class Dataset, which is typically used in the PyTorch framework for handling datasets.
+    # The ChessDataset class is designed to handle and preprocess chess game data for use in machine learning models.
+    # It inherits from the abstract class Dataset, which is typically used in the PyTorch framework for handling datasets.
     """
     A class that inherits from the abstract class 'Dataset',
     which makes the model store the samples and their corresponding labels. 
@@ -33,7 +34,7 @@ class ChessDataset(Dataset):
         # Open PGN file.
         with open(self.pgn_path, "r") as pgn_file:
             # While loop runs for a given amount of games.
-            while counter < 100:
+            while counter < 100000:
                 game = chess.pgn.read_game(pgn_file)
 
                 # Break the loop if the game is None.
@@ -54,19 +55,20 @@ class ChessDataset(Dataset):
         """
         return len(self.games)
     
-    # Takes an index idx and retrieves the corresponding game from the games list.
-    # Extracts the board state and moves for the game.
-    # If there are no moves, it recursively calls itself with the next index.
-    # Determines the result of the game (1.0 for white win, -1.0 for black win, 0.0 for draw) and assigns this result to all moves.
-    # Randomly selects a move and its corresponding board state and result.
-    # Encodes the board state and move into tensors.
-    # Returns a tuple of tensors representing the board state, move, and result.
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Required for the abstract class 'Dataset'.
         Loads and returns a sample from the dataset at the given index 'idx'. Returns a tuple of tensors.
         """
+        # Takes an index idx and retrieves the corresponding game from the games list.
+        # Extracts the board state and moves for the game.
+        # If there are no moves, it recursively calls itself with the next index.
+        # Determines the result of the game (1.0 for white win, -1.0 for black win, 0.0 for draw) and assigns this result to all moves.
+        # Randomly selects a move and its corresponding board state and result.
+        # Encodes the board state and move into tensors.
+        # Returns a tuple of tensors representing the board state, move, and result.
+        
         # Load a game and the board state for that game.
         game = self.games[idx]
         board = game.board()

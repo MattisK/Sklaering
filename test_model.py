@@ -3,7 +3,6 @@ from ChessCNN import ChessCNN
 from functions import get_best_move
 from stockfish import Stockfish
 import torch
-import numpy as np
 
 
 def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None:
@@ -43,7 +42,7 @@ if __name__ == "__main__":
     
     # Keeps track of the results.
     results = {"White": 0, "Black": 0, "Draw": 0}
-    num_games = 100
+    num_games = 1000
     for i in range(num_games):
         # Runs loop for each game and appends the result to the result dictionary,
         # then resets the board when the game is over and prints the result when all games are over.
