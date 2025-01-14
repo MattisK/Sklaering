@@ -4,6 +4,7 @@ import torch.optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import os
+import matplotlib.pyplot as plt
 
 
 def train(model: ChessCNN, dataloader: DataLoader, optimizer: torch.optim.Adam, criterion_policy: nn.CrossEntropyLoss, criterion_value: nn.MSELoss, epochs: int) -> None:
@@ -78,3 +79,4 @@ if __name__ == "__main__":
 
     # Train the model.
     train(model, dataloader, optimizer, criterion_policy, criterion_value, epochs)
+

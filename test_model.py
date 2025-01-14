@@ -3,6 +3,8 @@ from ChessCNN import ChessCNN
 from functions import get_best_move
 from stockfish import Stockfish
 import torch
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None:
@@ -27,13 +29,13 @@ def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None
 if __name__ == "__main__":
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model.pth"))
+    model.load_state_dict(torch.load("chess_model.pth", weights_only=True))
 
     # Set the model to evaluation mode.
     model.eval()
 
     # Initialize stockfish and set the skill level.
-    stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
@@ -58,4 +60,6 @@ if __name__ == "__main__":
 
         board.reset()
 
-print(results)
+    print(results)
+
+   
