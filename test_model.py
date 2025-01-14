@@ -58,4 +58,4 @@ if __name__ == "__main__":
 
         board.reset()
 
-print(results)
+    print(results)
