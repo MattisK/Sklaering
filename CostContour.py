@@ -1,8 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
+from ChessCNN import ChessCNN
 
+
+# Initialize the model
+model = ChessCNN()
+
+# Access the state_dict
+state_dict = model.state_dict()
 # Read the data from the file
 loss_values = []
+
 with open("C:/#DTU/3 ugers dec2025/Sklaering/Training loss.txt", 'r') as file:
     lines = file.readlines()
     for line in lines:

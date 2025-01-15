@@ -1,0 +1,105 @@
+State dict keys:
+conv1.0.weight
+conv1.0.bias
+conv1.1.weight
+conv1.1.bias
+conv1.1.running_mean
+conv1.1.running_var
+conv1.1.num_batches_tracked
+conv2.0.weight
+conv2.0.bias
+conv2.1.weight
+conv2.1.bias
+conv2.1.running_mean
+conv2.1.running_var
+conv2.1.num_batches_tracked
+net1.0.weight
+net1.0.bias
+net1.1.weight
+net1.1.bias
+net1.1.running_mean
+net1.1.running_var
+net1.1.num_batches_tracked
+net1.4.weight
+net1.4.bias
+net2.0.weight
+net2.0.bias
+net2.1.weight
+net2.1.bias
+net2.1.running_mean
+net2.1.running_var
+net2.1.num_batches_tracked
+net2.4.weight
+net2.4.bias
+net2.6.weight
+net2.6.bias
+
+Model Parameters:
+conv1.0.weight: torch.Size([256, 12, 3, 3])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3250>
+conv1.0.bias: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F32A0>
+conv1.1.weight: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F32F0>
+conv1.1.bias: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3340>
+conv1.1.running_mean: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3390>
+conv1.1.running_var: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F33E0>
+conv1.1.num_batches_tracked: torch.Size([])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3430>
+conv2.0.weight: torch.Size([256, 256, 3, 3])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F34D0>
+conv2.0.bias: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3520>
+conv2.1.weight: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3570>
+conv2.1.bias: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F35C0>
+conv2.1.running_mean: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3610>
+conv2.1.running_var: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3660>
+conv2.1.num_batches_tracked: torch.Size([])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F36B0>
+net1.0.weight: torch.Size([2, 256, 1, 1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3750>
+net1.0.bias: torch.Size([2])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F37A0>
+net1.1.weight: torch.Size([2])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F37F0>
+net1.1.bias: torch.Size([2])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3840>
+net1.1.running_mean: torch.Size([2])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3890>
+net1.1.running_var: torch.Size([2])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F38E0>
+net1.1.num_batches_tracked: torch.Size([])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3930>
+net1.4.weight: torch.Size([4672, 128])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F39D0>
+net1.4.bias: torch.Size([4672])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3A20>
+net2.0.weight: torch.Size([1, 256, 1, 1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3A70>
+net2.0.bias: torch.Size([1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3AC0>
+net2.1.weight: torch.Size([1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3B10>
+net2.1.bias: torch.Size([1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3B60>
+net2.1.running_mean: torch.Size([1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3BB0>
+net2.1.running_var: torch.Size([1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3C00>
+net2.1.num_batches_tracked: torch.Size([])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3C50>
+net2.4.weight: torch.Size([256, 64])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3CF0>
+net2.4.bias: torch.Size([256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3D40>
+net2.6.weight: torch.Size([1, 256])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3D90>
+net2.6.bias: torch.Size([1])
+Values : <built-in method view of Tensor object at 0x0000022E1D9F3DE0>
