@@ -4,15 +4,16 @@ import torch.optim
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import os
-import matplotlib.pyplot as plt
 import pickle
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 def train(model: ChessCNN, dataloader: DataLoader, optimizer: torch.optim.Adam, criterion_policy: nn.CrossEntropyLoss, criterion_value: nn.MSELoss, epochs: int) -> None:
     """Trains the model."""
     # Set the model to training mode.
     model.train()
-
+    loss_history = []
     # Training loop.
     for epoch in range(epochs):
         # Keeps track of the loss
@@ -50,11 +51,17 @@ def train(model: ChessCNN, dataloader: DataLoader, optimizer: torch.optim.Adam, 
             total_loss += loss.item()
         
         print(f"Epoch: {epoch + 1}/{epochs}, loss: {total_loss / len(dataloader)}")
+        loss_history.append(total_loss)
+        loss_np = np.array(loss_history)
 
         # Save the model.
         print("Saving model.")
         torch.save(model.state_dict(), "chess_model.pth")
         print("Done saving model.")
+
+        print("Saving loss.")
+        np.save("loss_history.npy", loss_np, allow_pickle=True)
+        print("Done saving loss.")
 
 
 if __name__ == "__main__":
