@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import os
 import matplotlib.pyplot as plt
+import pickle
 
 
 def train(model: ChessCNN, dataloader: DataLoader, optimizer: torch.optim.Adam, criterion_policy: nn.CrossEntropyLoss, criterion_value: nn.MSELoss, epochs: int) -> None:
@@ -51,14 +52,16 @@ def train(model: ChessCNN, dataloader: DataLoader, optimizer: torch.optim.Adam, 
         print(f"Epoch: {epoch + 1}/{epochs}, loss: {total_loss / len(dataloader)}")
 
         # Save the model.
+        print("Saving model.")
         torch.save(model.state_dict(), "chess_model.pth")
+        print("Done saving model.")
 
 
 if __name__ == "__main__":
     pgn_file = "lichess_db_standard_rated_2014-09.pgn"
     batch_size = 64
     learning_rate = 0.001
-    epochs = 100
+    epochs = 50
 
     # Checks if cuda cores are available.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
