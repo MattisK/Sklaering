@@ -124,7 +124,7 @@ def save_game(results: dict, path: str) -> None:
         f.write(f"\nAI Move Times: {results.get('AIMoveTimes', [])}")
         f.write("\n===================================\n")
 
-def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> (str, int, list):
+def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> tuple[str, int, list]:
     """Plays a game and returns the result, number of moves, and list of AI move times."""
     length = 0
     ai_move_times = []  # List to store time taken by AI for each move
