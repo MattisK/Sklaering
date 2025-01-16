@@ -7,6 +7,7 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
+from  tqdm import tqdm
 
 
 class EarlyStopping:
@@ -39,20 +40,20 @@ def train(
     """Trains the model."""
     # Load training loss history.
     if os.path.exists("loss_history.npy"):
-        loss_history = np.load("loss_history.npy", allow_pickle=True)
+        loss_history = list(np.load("loss_history.npy", allow_pickle=True))
     else: 
         loss_history = []
     
     # Load validation loss history.
     if os.path.exists("val_loss_history.npy"):
-        val_loss_history = np.load("val_loss_history.npy", allow_pickle=True)
+        val_loss_history = list(np.load("val_loss_history.npy", allow_pickle=True))
     else: 
         val_loss_history = []
 
     early_stopping = EarlyStopping()
 
     # Training loop.
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         # Set the model to training mode.
         model.train()
 
@@ -130,7 +131,16 @@ def train(
         np.save("loss_history.npy", loss_np, allow_pickle=True)
         np.save("val_loss_history.npy", val_loss_np, allow_pickle=True)
         print("Done saving model and loss.")
-
+    return loss_history, val_loss_history
+        
+def visualize_loss(train_loss_history: list[float], val_loss_history: list[float]) -> None:
+    """Visualize the training and validation loss."""
+    plt.plot(np.arange(1, len(train_loss_history) + 1), train_loss_history, label="Training loss")
+    plt.plot(np.arange(1, len(val_loss_history) + 1), val_loss_history, label="Validation loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__":
     pgn_file = "lichess_db_standard_rated_2014-09.pgn"
@@ -163,4 +173,6 @@ if __name__ == "__main__":
     criterion_value = nn.MSELoss()
 
     # Train the model.
-    train(model, train_dataloader, validation_dataloader, optimizer, criterion_policy, criterion_value, epochs)
+    train_loss_history, val_loss_history = train(model, train_dataloader, validation_dataloader, optimizer, criterion_policy, criterion_value, epochs)
+    
+    visualize_loss(train_loss_history, val_loss_history)

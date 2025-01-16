@@ -1,6 +1,5 @@
 import torch
 from ChessCNN import ChessCNN
-from ChessModel import ChessModel
 # Initialize the model
 
 

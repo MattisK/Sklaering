@@ -1,6 +1,5 @@
 import torch
 from ChessCNN import ChessCNN
-from ChessModel import ChessModel
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
