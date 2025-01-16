@@ -2,10 +2,15 @@ import torch
 from ChessCNN import ChessCNN
 from ChessModel import ChessModel
 # Initialize the model
+
+
 model = ChessCNN()
+model.load_state_dict(torch.load('chess_model.pth'))
+model.eval()
 
 # Access the state_dict
 state_dict = model.state_dict()
+
 print(state_dict)
 print("State dict keys:")
 for key in state_dict.keys():
