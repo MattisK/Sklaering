@@ -60,7 +60,7 @@ import chess
 import time
 from stockfish import Stockfish
 
-def get_worst_move(board: chess.Board) -> chess.Move:
+def get_worst_move(stockfish: Stockfish, board: chess.Board) -> chess.Move:
     """Returns the worst move according to Stockfish."""
     stockfish.set_fen_position(board.fen())
     legal_moves = list(board.legal_moves)
@@ -70,16 +70,18 @@ def get_worst_move(board: chess.Board) -> chess.Move:
     for move in legal_moves:
         board.push(move)
         stockfish.set_fen_position(board.fen())
-        evaluation = stockfish.get_evaluation().get('value', 0)
-        # Black wants a higher evaluation
-        if evaluation > worst_eval:
-            worst_eval = evaluation
-            worst_move = move
+        evaluation = stockfish.get_evaluation()['value']
+        if board.turn == chess.WHITE:
+            # White wants a lower evaluation
+            if evaluation < worst_eval:
+                worst_eval = evaluation
+                worst_move = move
+        else:
+            # Black wants a higher evaluation
+            if evaluation > worst_eval:
+                worst_eval = evaluation
+                worst_move = move
         board.pop()
-
-    # Fallback: return the first legal move if no "worst" move is found
-    if worst_move is None:
-        worst_move = legal_moves[0]
 
     return worst_move
 
@@ -99,7 +101,7 @@ def play_game_worstfish(model: ChessCNN, board: chess.Board, stockfish: Stockfis
             ai_move_times.append(end_time - start_time)  # Record AI move time
         else:
             # Black (Worst move according to Stockfish) turn
-            worst_move = get_worst_move(board)
+            worst_move = get_worst_move(stockfish, board)
             if worst_move:
                 board.push(worst_move)
 
@@ -144,7 +146,7 @@ if __name__ == "__main__":
     model.eval()
 
     # Initialize stockfish and set the skill level.
-    stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/Mattis/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
@@ -191,3 +193,4 @@ if __name__ == "__main__":
 
     # Save game results to file
     save_game({"Stockfish": results_stock, "Worstfish": results_worst, "Random": results_random}, "save_file.txt")
+

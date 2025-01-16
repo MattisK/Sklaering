@@ -9,6 +9,8 @@ model = ChessCNN()
 
 # Access the state_dict
 state_dict = model.state_dict()
+
+
 # Read the data from the file
 loss_values = []
 
@@ -22,19 +24,14 @@ with open("C:/#DTU/3 ugers dec2025/Sklaering/Training loss.txt", 'r') as file:
 loss_values = np.array(loss_values)
 
 # Initialize parameters
-a = 0
 
-T = 1000
-step = 1e-3
-
-cost = np.zeros(T)
-param_a = np.zeros(T)
-param_b = np.zeros(T)
-
-# Perform gradient descent
 a = 0
 learning_rate = 1e-3
 T = 1000
+
+
+# Perform gradient descent
+
 
 param_a = []
 loss_history = []
