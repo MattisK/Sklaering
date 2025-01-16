@@ -8,6 +8,8 @@ import scipy.stats as stats
 
 # Initialize the model
 model = ChessCNN()
+model.load_state_dict(torch.load('chess_model.pth'))
+model.eval()
 
 # Access the state_dict
 state_dict = model.state_dict()
@@ -45,6 +47,25 @@ for name, param in state_dict.items():
     var.append(np.var(param.numpy()))
 print(f"mean:{mean}, std:{std}, var:{var}")
 
+# confidence intervals for the mean, and standard deviation with alpha =0.05
+data = mean
+if len(data) == 0:
+        raise ValueError("The data list must not be empty.")
+data = np.array(data)
+    # Beregn gennemsnittet
+avg = np.mean(data)
+    
+    # Beregn standardafvigelsen
+std_dev = np.std(data, ddof=1)  # ddof=1 for at få stikprøve-standardafvigelsen
+    
+    # Beregn standardfejlen (standardafvigelse / sqrt(n))
+standard_error = std_dev / np.sqrt(len(data))
+    
+    # Beregn 95% konfidensinterval
+t_value = stats.t.ppf(0.975, df=len(data) - 1)  # 0.975 for tosidet 95%
+margin_of_error = t_value * standard_error
+confidence_interval = (avg - margin_of_error, avg + margin_of_error)
+    
 
 
-
+print(avg, confidence_interval)

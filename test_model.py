@@ -9,28 +9,26 @@ import pandas as pd
 from scipy.stats import ttest_ind, t
 import numpy as np
 import random
-import chess
-import time
+from stats import get_confidence_interval_and_average
+import json
+import os
 
-# TODO: shorten ai times
+# TODO: shorten worst fish times
 # TODO: add comments
-# TODO: add more tests fx random , worstfish  etc.
+# TODO: add a variable to turn off saving to json, and just print the results
 
+def games_to_json(results: dict) -> None:
+    if os.path.exists("results.json"):
+        with open("results.json", "r") as file:
+            json_dict = json.load(file)
+        json_dict[f"version_{len(json_dict) + 1}"] = results
+    else:
+        json_dict = {"version_1": results}
 
+    json_object = json.dumps(json_dict, indent=4)
 
-
-def save_game(results: dict, path: str) -> None:
-    """Gemmer spilresultaterne for alle modstandertyper i en tekstfil."""
-    x = datetime.datetime.now()
-    with open(path, "a") as f:
-        f.write(f"\nResults for {x}:")
-        for opponent_type, opponent_results in results.items():
-            f.write(f"\n--- Against {opponent_type} ---")
-            f.write(f"\nWhite wins: {opponent_results['White']}")
-            f.write(f"\nDraws: {opponent_results['Draw']}")
-            f.write(f"\nMove Counts: {opponent_results.get('MoveCounts', [])}")
-            f.write(f"\nAI Move Times: {opponent_results.get('AIMoveTimes', [])}")
-        f.write("\n===================================\n")
+    with open("results.json", "w") as outfile:
+        outfile.write(json_object)
 
 def play_game_stockfish(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> tuple[str, int, list]:
     """Plays a game and returns the result, number of moves, and list of AI move times."""
@@ -144,34 +142,60 @@ if __name__ == "__main__":
     model.eval()
 
     # Initialize stockfish and set the skill level.
-    stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+    #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
     # Keeps track of the results.
     results_stock = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
+    results_stock_1 = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
+    results_stock_2 = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
     results_worst = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
     results_random = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
     num_games = 10
 
-    for type in ["stock", "worst", "random"]:
+    for type in ["stock", "stock_1", "stock_2", "worst", "random"]:
         for i in range(num_games):
             print(f"Game: {i + 1} ({type})")
             board = chess.Board()  # Reset the board for each game
             if type == "stock":
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock["MoveCounts"].append(length)
-                results_stock["AIMoveTimes"].append(ai_move_times)
+                results_stock["AIMoveTimes"].extend(ai_move_times)
                 if result == "1-0":
                     results_stock["White"] += 1
                 elif result == "0-1":
                     results_stock["Black"] += 1
                 elif result == "1/2-1/2":
                     results_stock["Draw"] += 1
+            elif type == "stock_1":
+                stockfish = Stockfish(stockfish_path, depth=2)
+                result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
+                results_stock_1["MoveCounts"].append(length)
+                results_stock_1["AIMoveTimes"].extend(ai_move_times)
+                if result == "1-0":
+                    results_stock_1["White"] += 1
+                elif result == "0-1":
+                    results_stock_1["Black"] += 1
+                elif result == "1/2-1/2":
+                    results_stock_1["Draw"] += 1
+            elif type == "stock_2":
+                stockfish = Stockfish(stockfish_path, depth=4)
+                result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
+                results_stock_2["MoveCounts"].append(length)
+                results_stock_2["AIMoveTimes"].extend(ai_move_times)
+                if result == "1-0":
+                    results_stock_2["White"] += 1
+                elif result == "0-1":
+                    results_stock_2["Black"] += 1
+                elif result == "1/2-1/2":
+                    results_stock_2["Draw"] += 1
             elif type == "worst":
                 result, length, ai_move_times = play_game_worstfish(model, board, stockfish)
                 results_worst["MoveCounts"].append(length)
-                results_worst["AIMoveTimes"].append(ai_move_times)
+                results_worst["AIMoveTimes"].extend(ai_move_times)
                 if result == "1-0":
                     results_worst["White"] += 1
                 elif result == "0-1":
@@ -181,13 +205,25 @@ if __name__ == "__main__":
             elif type == "random":
                 result, length, ai_move_times = play_game_random_move(model, board, stockfish)
                 results_random["MoveCounts"].append(length)
-                results_random["AIMoveTimes"].append(ai_move_times)
+                results_random["AIMoveTimes"].extend(ai_move_times)
                 if result == "1-0":
                     results_random["White"] += 1
                 elif result == "0-1":
                     results_random["Black"] += 1
                 elif result == "1/2-1/2":
                     results_random["Draw"] += 1
-
+        if type == "stock":
+            results_stock["AIMoveTimes"] = get_confidence_interval_and_average(results_stock["AIMoveTimes"])
+        elif type == "stock_1":
+            results_stock_1["AIMoveTimes"] = get_confidence_interval_and_average(results_stock_1["AIMoveTimes"])
+        elif type == "stock_2":
+            results_stock_2["AIMoveTimes"] = get_confidence_interval_and_average(results_stock_2["AIMoveTimes"])
+        elif type == "worst":
+            results_worst["AIMoveTimes"] = get_confidence_interval_and_average(results_worst["AIMoveTimes"])
+        elif type == "random":
+            results_random["AIMoveTimes"] = get_confidence_interval_and_average(results_random["AIMoveTimes"])
+        
     # Save game results to file
-    save_game({"Stockfish": results_stock, "Worstfish": results_worst, "Random": results_random}, "save_file.txt")
+    result_to_json = {"NumGames": num_games, "Stockfish": results_stock, "Stockfish 1": results_stock_1, "Stockfish 2":results_stock_2, "Worstfish": results_worst, "Random": results_random}
+
+    games_to_json(result_to_json)
