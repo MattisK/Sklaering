@@ -32,7 +32,7 @@ def save_game(results: dict, path: str) -> None:
             f.write(f"\nAI Move Times: {opponent_results.get('AIMoveTimes', [])}")
         f.write("\n===================================\n")
 
-def play_game_stockfish(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> (str, int, list):
+def play_game_stockfish(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> tuple[str, int, list]:
     """Plays a game and returns the result, number of moves, and list of AI move times."""
     length = 0
     ai_move_times = []  # List to store time taken by AI for each move
@@ -85,7 +85,7 @@ def get_worst_move(stockfish: Stockfish, board: chess.Board) -> chess.Move:
 
     return worst_move
 
-def play_game_worstfish(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> (str, int, list):
+def play_game_worstfish(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> tuple[str, int, list]:
     """Plays a game and returns the result, number of moves, and list of AI move times."""
     length = 0
     ai_move_times = []  # List to store time taken by AI for each move
@@ -114,7 +114,7 @@ def get_random_move(board: chess.Board) -> chess.Move:
     legal_moves = list(board.legal_moves)
     return random.choice(legal_moves)
 
-def play_game_random_move(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> (str, int, list):
+def play_game_random_move(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> tuple[str, int, list]:
     """Plays a game where one side always makes a random move and returns the result, number of moves, and list of AI move times."""
     length = 0
     ai_move_times = []  # List to store time taken by AI for each move
@@ -136,6 +136,7 @@ def play_game_random_move(model: ChessCNN, board: chess.Board, stockfish: Stockf
         length += 1
 
     return board.result(), length, ai_move_times
+
 
 if __name__ == "__main__":
     compare = True
