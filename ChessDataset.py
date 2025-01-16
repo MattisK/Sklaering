@@ -24,16 +24,17 @@ class ChessDataset(Dataset):
         self.pgn_path = pgn_path
         self.games = self.load_games()
 
+
     # Opens the PGN file and reads up to 100 chess games.
     # Stores each game in a list and returns this list.
     def load_games(self) -> list[chess.pgn.Game]:
-        """Load a hardcoded amount of games from a PGN file. Returns a list of all games loaded."""
+        """Load all games with specific traits from a PGN file. Returns a list of all games loaded."""
         games = []
         counter = 0
         
         # Open PGN file.
         with open(self.pgn_path, "r") as pgn_file:
-            # While loop runs for a given amount of games.
+            # While loop runs through all the games in the PGN file.
             while True:
                 game = chess.pgn.read_game(pgn_file)
 
@@ -42,11 +43,14 @@ class ChessDataset(Dataset):
                     break
                 
                 # Append to the list of all games.
-                if game.headers.get("Termination") == "Normal":
+                if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0":
                     games.append(game)
                     counter += 1
+                
+                    if counter % 1000 == 0 and counter > 0:
+                        print(f"Loaded {counter} games.")
 
-        print(f"Loaded {counter} games.")
+        print(f"Done loading. Loaded {counter} games in total.")
         
         return games
     
