@@ -1,13 +1,9 @@
 import time
 import chess
-import datetime
 from ChessCNN import ChessCNN
 from functions import get_best_move
 from stockfish import Stockfish
 import torch
-import pandas as pd
-from scipy.stats import ttest_ind, t
-import numpy as np
 import random
 from stats import get_confidence_interval_and_average
 import json
@@ -69,16 +65,10 @@ def get_worst_move(stockfish: Stockfish, board: chess.Board) -> chess.Move:
         board.push(move)
         stockfish.set_fen_position(board.fen())
         evaluation = stockfish.get_evaluation()['value']
-        if board.turn == chess.WHITE:
-            # White wants a lower evaluation
-            if evaluation < worst_eval:
-                worst_eval = evaluation
-                worst_move = move
-        else:
-            # Black wants a higher evaluation
-            if evaluation > worst_eval:
-                worst_eval = evaluation
-                worst_move = move
+        # Black wants a higher evaluation
+        if evaluation > worst_eval:
+            worst_eval = evaluation
+            worst_move = move
         board.pop()
 
     return worst_move
@@ -140,17 +130,13 @@ if __name__ == "__main__":
     compare = True
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model.pth"))
+    model.load_state_dict(torch.load("chess_model_early_stopping.pth"))
     model.eval()
 
     # Initialize stockfish and set the skill level.
-<<<<<<< HEAD
-    stockfish_path = "C:/Users/Mattis/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
-=======
     #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
->>>>>>> e4412742ee5bb5334a4541841de1ca3cd5533e66
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
@@ -162,7 +148,7 @@ if __name__ == "__main__":
     results_random = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
     num_games = 10
 
-    for type in ["stock", "stock_1", "stock_2", "worst", "random"]:
+    for type in ["stock", "stock_1", "stock_2", "random", "worst"]:
         for i in range(num_games):
             print(f"Game: {i + 1} ({type})")
             board = chess.Board()  # Reset the board for each game
@@ -230,11 +216,5 @@ if __name__ == "__main__":
             results_random["AIMoveTimes"] = get_confidence_interval_and_average(results_random["AIMoveTimes"])
         
     # Save game results to file
-<<<<<<< HEAD
-    save_game({"Stockfish": results_stock, "Worstfish": results_worst, "Random": results_random}, "save_file.txt")
-
-=======
     result_to_json = {"NumGames": num_games, "Stockfish": results_stock, "Stockfish 1": results_stock_1, "Stockfish 2":results_stock_2, "Worstfish": results_worst, "Random": results_random}
-
     games_to_json(result_to_json)
->>>>>>> e4412742ee5bb5334a4541841de1ca3cd5533e66

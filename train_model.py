@@ -4,25 +4,26 @@ import torch.optim
 import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
 import os
-import pickle
-import matplotlib.pyplot as plt
 import numpy as np
-from  tqdm import tqdm
 
 
 class EarlyStopping:
-    def __init__(self, patience=5) -> None:
+    def __init__(self, patience=10) -> None:
         self.patience = patience
         self.best_loss = float("inf")
         self.counter = 0
         self.early_stop = False
+        self.rewind = False
+        self.rewinded = False
 
     
     def __call__(self, val_loss: float) -> None:
         if val_loss < self.best_loss:
             self.best_loss = val_loss
             self.counter = 0
+            self.rewind = False
         else:
+            self.rewind = True
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
@@ -53,7 +54,7 @@ def train(
     early_stopping = EarlyStopping()
 
     # Training loop.
-    for epoch in tqdm(range(epochs)):
+    for epoch in range(epochs):
         # Set the model to training mode.
         model.train()
 
@@ -121,30 +122,25 @@ def train(
 
         # Check for early stopping.
         early_stopping(avg_val_loss)
+        if not early_stopping.rewind:
+            print("Saving early stopping model.")
+            torch.save(model.state_dict(), "chess_model_early_stopping.pth")
+            print("Done saving early stopping model.")
         if early_stopping.early_stop:
             print(f"Triggered early stopping on epoch {epoch + 1}.")
             break
         
         # Save the model and loss.
         print("Saving model and loss.")
-        torch.save(model.state_dict(), "chess_model.pth")
+        torch.save(model.state_dict(), "chess_model_raw.pth")
         np.save("loss_history.npy", loss_np, allow_pickle=True)
         np.save("val_loss_history.npy", val_loss_np, allow_pickle=True)
         print("Done saving model and loss.")
-    return loss_history, val_loss_history
         
-def visualize_loss(train_loss_history: list[float], val_loss_history: list[float]) -> None:
-    """Visualize the training and validation loss."""
-    plt.plot(np.arange(1, len(train_loss_history) + 1), train_loss_history, label="Training loss")
-    plt.plot(np.arange(1, len(val_loss_history) + 1), val_loss_history, label="Validation loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.show()
 
 if __name__ == "__main__":
     pgn_file = "lichess_db_standard_rated_2014-09.pgn"
-    batch_size = 64
+    batch_size = 128
     learning_rate = 0.001
     epochs = 50
 
@@ -164,8 +160,8 @@ if __name__ == "__main__":
 
     # Initialize the model. If one already exists load that model.
     model = ChessCNN().to(device)
-    if os.path.exists("chess_model.pth"):
-        model.load_state_dict(torch.load("chess_model.pth"))
+    if os.path.exists("chess_model_raw.pth"):
+        model.load_state_dict(torch.load("chess_model_raw.pth"))
 
     # Optimizer and loss functions.
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -173,6 +169,4 @@ if __name__ == "__main__":
     criterion_value = nn.MSELoss()
 
     # Train the model.
-    train_loss_history, val_loss_history = train(model, train_dataloader, validation_dataloader, optimizer, criterion_policy, criterion_value, epochs)
-    
-    visualize_loss(train_loss_history, val_loss_history)
+    train(model, train_dataloader, validation_dataloader, optimizer, criterion_policy, criterion_value, epochs)

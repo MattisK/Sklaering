@@ -35,7 +35,7 @@ class ChessDataset(Dataset):
         # Open PGN file.
         with open(self.pgn_path, "r") as pgn_file:
             # While loop runs through all the games in the PGN file.
-            while counter < 1000:
+            while True:
                 game = chess.pgn.read_game(pgn_file)
 
                 # Break the loop if the game is None.
