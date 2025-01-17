@@ -25,11 +25,6 @@ with open("Training loss.txt", 'r') as file:
 loss_values = np.array(loss_values)
 
 # Initialize parameters
-<<<<<<< HEAD
-=======
-a = 0
-b = 0
->>>>>>> e4412742ee5bb5334a4541841de1ca3cd5533e66
 
 a = 0
 b = 0

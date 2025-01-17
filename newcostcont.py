@@ -22,88 +22,72 @@ with open("Training loss.txt", 'r') as file:
             loss_values.append(float(loss))
 
 loss_values = np.array(loss_values)
+print(loss_values)
+# Count the number of parameters in the model
+num_params = sum(p.numel() for p in model.parameters())
+print(f"Number of parameters in the model: {num_params}")
 
-# Perform gradient descent on model parameters
-learning_rate = 1e-3
-T = 1000
+def normalize(X):
+    mean = np.mean(X)
+    std = np.std(X)
+    X_norm = (X - mean) / std
+    return X_norm, mean, std
 
-# Convert state_dict to a list of parameters
-params = [param for param in model.parameters()]
+def add_bias_feature(X):
+    return np.column_stack((np.ones(len(X)),X))
 
-# Initialize lists to store parameter values and loss history
-param_history = [[] for _ in params]
-lossHistory = []
+def compute_cost(X,Y,theta):
+    m = len(Y)
+    h = X.dot(theta)
+    cost = (1/(2*m)) * np.sum(np.square(h-Y))
+    return cost
 
-# Gradient descent loop
-for t in range(T):
-    # Forward pass
-    print(loss_values[t])
-    input_tensor = torch.tensor(loss_values[t], dtype=torch.float32).unsqueeze(0).unsqueeze(0).repeat(1, 1, 8, 8)
-    y_est = model(input_tensor)[0]
-    loss = torch.nn.functional.mse_loss(y_est, input_tensor)
+def gradient_descent(X,Y,theta,alpha,learning_iterations):
 
-    # Backward pass
-    model.zero_grad()
-    loss.backward()
+    m = len(Y)
+    cost_history = []
+    for i in range(learning_iterations):
+        h = X.dot(theta)
+        error = h-Y  # loss
+        gradient = (1/m)*X.T.dot(error)
+        theta = theta - alpha*gradient
+        cost = compute_cost(X,Y,theta)
+        cost_history.append(cost)
+    return theta,cost_history
 
-    # Ensure the gradients are of fixed size
-    for param in model.parameters():
-        if param.grad is not None:
-            param.grad = param.grad.clone().detach()
-    # Update parameters
-    with torch.no_grad():
-        for param in model.parameters():
-            if param.grad is not None:
-                param -= learning_rate * param.grad
+min_length = min(len(loss_values), len([param.numel() for param in model.parameters() if param.requires_grad]))
+X = loss_values[:min_length]
+Y = np.array([param.numel() for param in model.parameters() if param.requires_grad][:min_length])
 
-    # Store values for visualization
-    for i, param in enumerate(model.parameters()):
-        param_history[i].append(param.clone().detach().numpy())
-    lossHistory.append(loss.item())
+X_norm, mean_X, std_X = normalize(X)
 
-# Plot Loss vs. Iterations
-plt.figure(figsize=(10, 5))
-plt.plot(range(T), lossHistory, label='Loss')
-plt.xlabel('Iterations')
-plt.ylabel('Loss')
-plt.title('Loss vs. Iterations')
-plt.grid()
-plt.legend()
+X_bias = add_bias_feature(X_norm)
+
+theta_initial = np.zeros(2)
+
+alpha = 0.01
+
+num_iterations = 1000
+
+theta_final, cost_history = gradient_descent(X_bias,Y,theta_initial,alpha,num_iterations)
+
+print(f"Final theta: {theta_final}")
+print(f"Final cost: {cost_history[-1]}")
+
+plt.plot(cost_history)
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.title("Cost vs Iterations")
 plt.show()
 
-# Plot parameter values vs. Iterations
-for i, param_hist in enumerate(param_history):
-    plt.figure(figsize=(10, 5))
-    plt.plot(range(T), param_hist, label=f'Parameter {i}')
-    plt.xlabel('Iterations')
-    plt.ylabel(f'Parameter {i}')
-    plt.title(f'Parameter {i} vs. Iterations')
-    plt.grid()
-    plt.legend()
-    plt.show()
-
-    # Generate a grid of parameter values
-    param_a = param_hist[0]
-    param_b = param_hist[1]
-    a_values = np.linspace(min(param_a), max(param_a), 100)
-    b_values = np.linspace(min(param_b), max(param_b), 100)
-    A, B = np.meshgrid(a_values, b_values)
-    Z = np.zeros_like(A)
-
-    # Compute the cost for each pair of (a, b)
-    for i in range(A.shape[0]):
-        for j in range(A.shape[1]):
-            a = A[i, j]
-            b = B[i, j]
-            y_est = a * loss_values + b
-            Z[i, j] = np.sum((loss_values - y_est) ** 2)
-
-    # Plot the cost contour
-    plt.figure(figsize=(10, 8))
-    cp = plt.contourf(A, B, Z, levels=50, cmap='viridis')
-    plt.colorbar(cp)
-    plt.xlabel('Parameter a')
-    plt.ylabel('Parameter b')
-    plt.title('Cost Contour Plot')
-    plt.grid()
-    plt.show()
+plt.plot(X, loss_values[:min_length], ".-")
+a_mesh = np.linspace(theta_final[1] - 1, theta_final[1] + 1, 100)
+b_mesh = np.linspace(theta_final[0] - 1, theta_final[0] + 1, 100)
+B,A = np.meshgrid(b_mesh,a_mesh)
+Z = np.sum((A[:,:,np.newaxis]*X_bias[:,0][np.newaxis,np.newaxis]+B[:,:,np.newaxis]*X_bias[:,1][np.newaxis,np.newaxis]-Y[np.newaxis,np.newaxis])**2,2)
+plt.contour(B,A,np.log(Z),7)
+plt.gca().set_aspect("equal","box")
+plt.xlabel("b")
+plt.ylabel("a")
+plt.grid(True)
+plt.show()
