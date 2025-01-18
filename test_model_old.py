@@ -28,7 +28,7 @@ def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None
 if __name__ == "__main__":
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model.pth"))
+    model.load_state_dict(torch.load("chess_model_early_stopping.pth"))
 
     # Set the model to evaluation mode.
     model.eval()
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     
     # Keeps track of the results.
     results = {"White": 0, "Black": 0, "Draw": 0}
-    num_games = 1000
+    num_games = 100
     for i in range(num_games):
         # Runs loop for each game and appends the result to the result dictionary,
         # then resets the board when the game is over and prints the result when all games are over.

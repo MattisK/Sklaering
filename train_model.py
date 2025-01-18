@@ -34,8 +34,7 @@ def train(
         train_dataloader: DataLoader,
         validation_dataloader: DataLoader,
         optimizer: torch.optim.Adam,
-        criterion_policy: nn.CrossEntropyLoss,
-        criterion_value: nn.MSELoss,
+        criterion: nn.CrossEntropyLoss,
         epochs: int
         ) -> None:
     """Trains the model."""
@@ -62,26 +61,19 @@ def train(
         total_loss = 0.0
 
         # Fetches a sample from the dataloader which is an instance of 'DataLoader'.
-        for boards, moves, results in train_dataloader:
+        for boards, moves in train_dataloader:
             # The samples fetched.
             boards = boards.to(device)
             moves = moves.to(device).long()
-            results = results.to(device)
 
             # Reset the gradients from previous iteration.
             optimizer.zero_grad()
 
             # Get the policy and value from the model for a given board state.
-            policy, value = model(boards)
+            policy = model(boards)
 
             # Cross entropy loss function for the policy, since this is a logsoftmax function.
-            loss_policy = criterion_policy(policy, moves)
-
-            # Mean squared error loss function for the value, since this is a tanh function.
-            loss_value = criterion_value(value.squeeze(), results)
-
-            # The loss for the model is the total loss.
-            loss = loss_policy + loss_value
+            loss = criterion(policy, moves)
             
             # Gradients for all models with respect to loss.
             loss.backward()
@@ -102,16 +94,13 @@ def train(
         val_loss = 0.0
 
         with torch.no_grad():
-            for boards, moves, results in validation_dataloader:
+            for boards, moves in validation_dataloader:
                 boards = boards.to(device)
                 moves = moves.to(device).long()
-                results = results.to(device)
 
-                policy, value = model(boards)
+                policy = model(boards)
 
-                loss_policy = criterion_policy(policy, moves)
-                loss_value = criterion_value(value.squeeze(), results)
-                loss = loss_policy + loss_value
+                loss = criterion(policy, moves)
 
                 val_loss += loss.item()
 
@@ -142,7 +131,7 @@ if __name__ == "__main__":
     pgn_file = "lichess_db_standard_rated_2014-09.pgn"
     batch_size = 128
     learning_rate = 0.001
-    epochs = 50
+    epochs = 100
 
     # Checks if cuda cores are available.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -165,8 +154,7 @@ if __name__ == "__main__":
 
     # Optimizer and loss functions.
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    criterion_policy = nn.CrossEntropyLoss()
-    criterion_value = nn.MSELoss()
+    criterion = nn.CrossEntropyLoss()
 
     # Train the model.
-    train(model, train_dataloader, validation_dataloader, optimizer, criterion_policy, criterion_value, epochs)
+    train(model, train_dataloader, validation_dataloader, optimizer, criterion, epochs)

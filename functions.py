@@ -62,7 +62,7 @@ def get_best_move(model: ChessCNN, board: chess.Board) -> chess.Move:
     # outputs a policy tensor, which contains probabilities for each possible move.
 
     with torch.no_grad():
-        policy, _ = model(board_tensor)
+        policy = model(board_tensor)
     
     # legal_moves is a list of all legal moves in the current board state.
     legal_moves = list(board.legal_moves)
