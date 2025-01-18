@@ -9,16 +9,14 @@ from functions import encode_board, encode_move
 class ChessDataset(Dataset):
     # The ChessDataset class is designed to handle and preprocess chess game data for use in machine learning models.
     # It inherits from the abstract class Dataset, which is typically used in the PyTorch framework for handling datasets.
-    """
-    A class that inherits from the abstract class 'Dataset',
-    which makes the model store the samples and their corresponding labels. 
-    """
     # Takes a path to a PGN (Portable Game Notation) file as input.
     # Initializes the pgn_path attribute with the provided path.
     # Calls the load_games method to load chess games from the PGN file and stores them in the games attribute.
 
     def __init__(self, pgn_path: str) -> None:
         """
+        A class that inherits from the abstract class 'Dataset',
+        which makes the model store the samples and their corresponding labels.
         Initialize the PGN-path and the list of games.
         """
         self.pgn_path = pgn_path
@@ -35,7 +33,7 @@ class ChessDataset(Dataset):
         # Open PGN file.
         with open(self.pgn_path, "r") as pgn_file:
             # While loop runs through all the games in the PGN file.
-            while counter < 250000:
+            while counter < 1000:
                 game = chess.pgn.read_game(pgn_file)
 
                 # Break the loop if the game is None.
