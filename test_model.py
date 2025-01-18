@@ -4,7 +4,7 @@ from functions import get_best_move
 from stockfish import Stockfish
 import torch
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None:
     """While the game is not over, plays the game against the stockfish chess engine."""
@@ -24,8 +24,7 @@ def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None
             if stockfish_move:
                 board.push(stockfish_move)
 
-
-if __name__ == "__main__":
+def main():
     # Load the trained model.
     model = ChessCNN()
     model.load_state_dict(torch.load("chess_model.pth"))
@@ -59,4 +58,28 @@ if __name__ == "__main__":
 
         board.reset()
 
-print(results)
+    print(results)
+    return results
+
+def plot_results(results):
+    # Extract data for plotting
+    parameter_a = np.array([results["White"], results["Black"], results["Draw"]])
+    parameter_b = np.array([0, 1, 2])  # Dummy parameter for plotting
+
+    # Plot parameters for each iteration on contour plot of cost
+    plt.plot(parameter_b, parameter_a, '.-')
+    a_mesh = np.linspace(-.2, 1, 400)
+    b_mesh = np.linspace(-.2, 1.75, 400)
+    B, A = np.meshgrid(b_mesh, a_mesh)
+    Z = np.sum((A[:,:,np.newaxis]*parameter_b[np.newaxis,np.newaxis]+B[:,:,np.newaxis]-parameter_a[np.newaxis,np.newaxis])**2,2)
+    plt.contour(B, A, np.log(Z), 7)
+    plt.gca().set_aspect('equal', 'box')
+    plt.xlabel('b')
+    plt.ylabel('a')
+    plt.grid(True)
+    plt.title('Cost contour plot')
+    plt.show()
+
+if __name__ == "__main__":
+    results = main()
+    plot_results(results)
