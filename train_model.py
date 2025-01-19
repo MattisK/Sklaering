@@ -57,7 +57,7 @@ def train(
         # Set the model to training mode.
         model.train()
 
-        # Keeps track of the loss
+        # Keeps track of the loss.
         total_loss = 0.0
 
         # Fetches a sample from the dataloader which is an instance of 'DataLoader'.
@@ -137,7 +137,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load dataset and parse it to a DataLoader instance with a given batch size and shuffling.
-    dataset = ChessDataset(pgn_file)
+    dataset = ChessDataset(pgn_file, 10000)
 
     train_size = int(0.8 * len(dataset))
     validation_size = len(dataset) - train_size

@@ -13,13 +13,14 @@ class ChessDataset(Dataset):
     # Initializes the pgn_path attribute with the provided path.
     # Calls the load_games method to load chess games from the PGN file and stores them in the games attribute.
 
-    def __init__(self, pgn_path: str) -> None:
+    def __init__(self, pgn_path: str, batch_size: int) -> None:
         """
         A class that inherits from the abstract class 'Dataset',
         which makes the model store the samples and their corresponding labels.
-        Initialize the PGN-path and the list of games.
+        Initialize the PGN-path, the list of games and batch_size.
         """
         self.pgn_path = pgn_path
+        self.batch_size = batch_size
         self.games = self.load_games()
 
 
@@ -32,8 +33,8 @@ class ChessDataset(Dataset):
         
         # Open PGN file.
         with open(self.pgn_path, "r") as pgn_file:
-            # While loop runs through all the games in the PGN file.
-            while counter < 1000:
+            # While loop runs through a number of games in the PGN file.
+            while counter < self.batch_size:
                 game = chess.pgn.read_game(pgn_file)
 
                 # Break the loop if the game is None.

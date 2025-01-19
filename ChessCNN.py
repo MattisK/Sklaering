@@ -20,7 +20,7 @@ class ChessCNN(nn.Module):
         self.conv2 = nn.Sequential(
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
-            nn.ReLU(),
+            nn.ReLU()
         )
 
         # Policy network. Convolutional and fully connected layers.
@@ -30,7 +30,7 @@ class ChessCNN(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(2 * 8 * 8, 4672),
-            nn.LogSoftmax()
+            nn.LogSoftmax(dim=1)
         )
     
     

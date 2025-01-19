@@ -3,7 +3,6 @@ from ChessCNN import ChessCNN
 from functions import get_best_move
 from stockfish import Stockfish
 import torch
-import numpy as np
 
 
 def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None:
@@ -34,7 +33,8 @@ if __name__ == "__main__":
     model.eval()
 
     # Initialize stockfish and set the skill level.
-    stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    #stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     
     # Keeps track of the results.
     results = {"White": 0, "Black": 0, "Draw": 0}
-    num_games = 100
+    num_games = 1000
     for i in range(num_games):
         # Runs loop for each game and appends the result to the result dictionary,
         # then resets the board when the game is over and prints the result when all games are over.
