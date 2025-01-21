@@ -48,12 +48,15 @@ class ChessDataset(Dataset):
                     break
                 
                 # Append to the list of all games.
-                if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0":
-                    offsets.append(offset)
-                    counter += 1
+                try:
+                    if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0" and (int(game.headers.get("WhiteElo")) >= 1800 or int(game.headers.get("BlackElo")) >= 1800):
+                        offsets.append(offset)
+                        counter += 1
 
-                    if counter % 1000 == 0:
-                        print(f"Indexed {counter} games.")
+                        if counter % 1000 == 0:
+                            print(f"Indexed {counter} games.")
+                except ValueError:
+                    continue
 
         print(f"Done indexing. Games indexed: {len(offsets)}")
         
