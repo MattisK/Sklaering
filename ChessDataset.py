@@ -1,7 +1,6 @@
 import chess.pgn
 from torch.utils.data import Dataset
 import chess
-import numpy as np
 import torch
 from functions import encode_board, encode_move
 
@@ -49,7 +48,7 @@ class ChessDataset(Dataset):
                 
                 # Append to the list of all games.
                 try:
-                    if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0" and (int(game.headers.get("WhiteElo")) >= 1800 or int(game.headers.get("BlackElo")) >= 1800):
+                    if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0" and (int(game.headers.get("WhiteElo")) >= 1800 and int(game.headers.get("BlackElo")) >= 1800):
                         offsets.append(offset)
                         counter += 1
 

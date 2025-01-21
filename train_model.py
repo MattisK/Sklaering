@@ -3,7 +3,6 @@ from ChessCNN import ChessCNN
 import torch.optim
 import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
-import os
 import numpy as np
 from functions import collate_fn
 
@@ -39,20 +38,12 @@ def train(
         epochs: int
         ) -> None:
     """Trains the model."""
-    # Load training loss history.
-    if os.path.exists("loss_history.npy"):
-        loss_history = list(np.load("loss_history.npy", allow_pickle=True))
-    else: 
-        loss_history = []
-    
-    # Load validation loss history.
-    if os.path.exists("val_loss_history.npy"):
-        val_loss_history = list(np.load("val_loss_history.npy", allow_pickle=True))
-    else: 
-        val_loss_history = []
-
     # Initialize early stopping.
     early_stopping = EarlyStopping()
+
+    # Lists for tracking loss
+    loss_history = []
+    val_loss_history = []
 
     # Training loop.
     for epoch in range(epochs):
@@ -138,14 +129,15 @@ if __name__ == "__main__":
     batch_size = 32
     learning_rate = 0.001
     epochs = 1000
+    games = 100000
 
     # Checks if CUDA cores are available.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load dataset and parse it to a DataLoader instance later with a given batch size and shuffling.
-    dataset = ChessDataset(pgn_file, 100000)
+    dataset = ChessDataset(pgn_file, games)
 
-    # Split the data in training and validation.
+    # Split the data in 80% training and 20% validation.
     train_size = int(0.8 * len(dataset))
     validation_size = len(dataset) - train_size
     train_dataset, validation_dataset = random_split(dataset, [train_size, validation_size])
@@ -154,10 +146,8 @@ if __name__ == "__main__":
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
     validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
-    # Initialize the model. If one already exists load that model.
+    # Initialize the model with CUDA.
     model = ChessCNN().to(device)
-    if os.path.exists("chess_model_raw.pth"):
-        model.load_state_dict(torch.load("chess_model_raw.pth"))
 
     # Optimizer and loss functions.
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
