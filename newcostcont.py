@@ -4,7 +4,7 @@ import torch
 from ChessCNN import ChessCNN
 
 model = ChessCNN()
-model.load_state_dict(torch.load('chess_model.pth', weights_only=True))
+model.load_state_dict(torch.load('chess_model_raw.pth', weights_only=True))
 model.eval()
 
 
@@ -12,16 +12,9 @@ model.eval()
 state_dict = model.state_dict()
 
 # Read the data from the file
-loss_values = []
-
-with open("Training loss.txt", 'r') as file:
-    lines = file.readlines()
-    for line in lines:
-        if "loss:" in line:
-            loss = line.split("loss:")[1].strip()
-            loss_values.append(float(loss))
-
-loss_values = np.array(loss_values)
+loss_values = np.load("loss_history.npy")
+if len(loss_values) == 0:
+    raise ValueError("The length of loss_values is zero.")
 print(loss_values)
 # Count the number of parameters in the model
 num_params = sum(p.numel() for p in model.parameters())
@@ -55,40 +48,33 @@ def gradient_descent(X,Y,theta,alpha,learning_iterations):
         cost_history.append(cost)
     return theta,cost_history
 
-min_length = min(len(loss_values), len([param.numel() for param in model.parameters() if param.requires_grad]))
-X = loss_values[:min_length]
-Y = np.array([param.numel() for param in model.parameters() if param.requires_grad][:min_length])
+    # Example data for X and Y
+    X = np.random.rand(100, 2)  # 100 samples, 2 features
+    Y = np.random.rand(100)     # 100 target values
 
-X_norm, mean_X, std_X = normalize(X)
+    # Normalize the features
+    X_norm, mean, std = normalize(X)
 
-X_bias = add_bias_feature(X_norm)
+    # Add bias feature
+    X_bias = add_bias_feature(X_norm)
 
-theta_initial = np.zeros(2)
+    # Initialize theta (parameters) with zeros
+    theta = np.zeros(X_bias.shape[1])
 
-alpha = 0.01
+    # Set learning rate and number of iterations
+    alpha = 0.01
+    learning_iterations = 1000
 
-num_iterations = 1000
+    # Perform gradient descent
+    theta, cost_history = gradient_descent(X_bias, Y, theta, alpha, learning_iterations)
 
-theta_final, cost_history = gradient_descent(X_bias,Y,theta_initial,alpha,num_iterations)
+    # Print the final parameters and cost history
+    print("Final parameters (theta):", theta)
+    print("Cost history:", cost_history)
 
-print(f"Final theta: {theta_final}")
-print(f"Final cost: {cost_history[-1]}")
-
-plt.plot(cost_history)
-plt.xlabel("Iterations")
-plt.ylabel("Cost")
-plt.title("Cost vs Iterations")
-plt.show()
-
-plt.plot(X, loss_values[:min_length], ".-")
-a_mesh = np.linspace(theta_final[1] - 0.5, theta_final[1] + 0.5, 100)
-b_mesh = np.linspace(theta_final[0] - 0.5, theta_final[0] + 0.5, 100)
-B, A = np.meshgrid(b_mesh, a_mesh)
-Z = np.sum((A[:, :, np.newaxis] * X_bias[:, 0][np.newaxis, np.newaxis] + B[:, :, np.newaxis] * X_bias[:, 1][np.newaxis, np.newaxis] - Y[np.newaxis, np.newaxis]) ** 2, 2)
-plt.contour(B, A, np.log(Z), 20)
-plt.gca().set_aspect("equal", "box")
-plt.xlabel("b")
-plt.ylabel("a")
-plt.grid(True)
-plt.title("Contour plot of cost function")
-plt.show()
+    # Plot the cost history
+    plt.plot(cost_history)
+    plt.xlabel('Iteration')
+    plt.ylabel('Cost')
+    plt.title('Cost History over Iterations')
+    plt.show()
