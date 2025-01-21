@@ -13,28 +13,34 @@ class ChessDataset(Dataset):
     # Initializes the pgn_path attribute with the provided path.
     # Calls the load_games method to load chess games from the PGN file and stores them in the games attribute.
 
-    def __init__(self, pgn_path: str, batch_size: int) -> None:
+    def __init__(self, pgn_path: str, max_games: int) -> None:
         """
         A class that inherits from the abstract class 'Dataset',
         which makes the model store the samples and their corresponding labels.
-        Initialize the PGN-path, the list of games and batch_size.
+        Initialize the PGN-path, the list of games and the maximum amount of games.
         """
         self.pgn_path = pgn_path
-        self.batch_size = batch_size
-        self.games = self.load_games()
+        self.max_games = max_games
+        self.game_offsets = self.index_pgn_file()
 
 
     # Opens the PGN file and reads up to 100 chess games.
     # Stores each game in a list and returns this list.
-    def load_games(self) -> list[chess.pgn.Game]:
+    def index_pgn_file(self) -> list[chess.pgn.Game]:
         """Load all games with specific traits from a PGN file. Returns a list of all games loaded."""
-        games = []
+        offsets = []
         counter = 0
         
         # Open PGN file.
         with open(self.pgn_path, "r") as pgn_file:
             # While loop runs through a number of games in the PGN file.
-            while counter < self.batch_size:
+            while True:
+                # Breaks the loop if the amount of games exceeds the max amount of games.
+                if self.max_games and len(offsets) >= self.max_games:
+                    break
+
+                # Load the game
+                offset = pgn_file.tell()
                 game = chess.pgn.read_game(pgn_file)
 
                 # Break the loop if the game is None.
@@ -43,22 +49,22 @@ class ChessDataset(Dataset):
                 
                 # Append to the list of all games.
                 if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0":
-                    games.append(game)
+                    offsets.append(offset)
                     counter += 1
-                
-                    if counter % 1000 == 0:
-                        print(f"Loaded {counter} games.")
 
-        print(f"Done loading. Loaded {counter} games in total.")
+                    if counter % 1000 == 0:
+                        print(f"Indexed {counter} games.")
+
+        print(f"Done indexing. Games indexed: {len(offsets)}")
         
-        return games
+        return offsets
     
 
     def __len__(self) -> int:
         """
         Required for the abstract class 'Dataset'. Returns the amount of games loaded.
         """
-        return len(self.games)
+        return len(self.game_offsets)
     
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
@@ -69,13 +75,16 @@ class ChessDataset(Dataset):
         # Takes an index idx and retrieves the corresponding game from the games list.
         # Extracts the board state and moves for the game.
         # If there are no moves, it recursively calls itself with the next index.
-        # Determines the result of the game (1.0 for white win, -1.0 for black win, 0.0 for draw) and assigns this result to all moves.
         # Randomly selects a move and its corresponding board state and result.
         # Encodes the board state and move into tensors.
         # Returns a tuple of tensors representing the board state, move, and result.
 
+        # Load a game at a given index.
+        with open(self.pgn_path, "r") as pgn_file:
+            pgn_file.seek(self.game_offsets[idx])
+            game = chess.pgn.read_game(pgn_file)
+
         # Load a game and the board state for that game.
-        game = self.games[idx]
         board = game.board()
 
         # Empty lists for later use.
@@ -85,23 +94,13 @@ class ChessDataset(Dataset):
         # Looks at each move in the game and saves the board state and move,
         # then updates the board by pushing the move to the board.
         for move in game.mainline_moves():
-            positions.append(board.copy())
-            moves.append(move)
+            positions.append(encode_board(board.copy()))
+            moves.append(encode_move(move))
             board.push(move)
 
         # If we have a situation where there are no moves in the game we look at the next index.
         if not positions or not moves:
-            return self.__getitem__((idx + 1) % len(self.games))
-
-        # Randomly selects an index of max size of the positions. Uses this to fetch a board, move, and result
-        # and ensures better sampling of the training data.
-        random_idx = np.random.randint(len(positions))
-        board = positions[random_idx]
-        move = moves[random_idx]
-
-        # Encodes the board as a 12x8x8 tensor and the move as an integer.
-        board_encoded = encode_board(board)
-        move_encoded = encode_move(move)
+            return self.__getitem__((idx + 1) % len(self.game_offsets))
 
         # Returns a tuple of tensors for the board, move and result.
-        return board_encoded, torch.tensor(move_encoded, dtype=torch.float32)
+        return torch.stack(positions), torch.tensor(moves, dtype=torch.long)

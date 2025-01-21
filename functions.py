@@ -6,13 +6,13 @@ from ChessCNN import ChessCNN
 
 def encode_board(board: chess.Board) -> torch.Tensor:
     """
-    Takes the board state and converts it to a 12x8x8 one-hot encoded tensor.
+    Takes the board state and converts it to a 13x8x8 one-hot encoded tensor.
     """
     # An 8x8 board with a third dimension of size 12 to separate the pieces into different planes.
     np_board = np.zeros((12, 8, 8))
-    # The encode_board function converts a chess board state into a 12x8x8 one-hot encoded tensor using the PyTorch library.
+    # The encode_board function converts a chess board state into a 13x8x8 one-hot encoded tensor using the PyTorch library.
     # This creates an empty board representation where each of the 12 planes corresponds to a different type
-    # of chess piece (6 for white pieces and 6 for black pieces).
+    # of chess piece (6 for white pieces and 6 for black pieces). The 13th plane indicates which palyer's turn it is.
 
     # This dictionary maps each type of piece to an index. Lowercase letters represent black pieces, and uppercase letters represent white pieces.
     piece_map = {"p": 0, "n": 1, "b": 2, "r": 3, "q": 4, "k": 5,
@@ -24,6 +24,13 @@ def encode_board(board: chess.Board) -> torch.Tensor:
         plane = piece_map[str(piece)]
         row, col = divmod(square, 8)
         np_board[plane, row, col] = 1
+
+    # Makes a 13th plane where the player turn is tracked (0 if white, 1 if black).
+    turn_plane = np.zeros((1, 8, 8))
+    if board.turn == chess.BLACK:
+        turn_plane.fill(1)
+    
+    np_board = np.concatenate([np_board, turn_plane], axis=0)
     
     # Returns a tensor of the one-hot encoded tensor
     # Finally, the function converts the NumPy array to a PyTorch tensor with a data type of float32 and returns it.
@@ -84,3 +91,9 @@ def get_best_move(model: ChessCNN, board: chess.Board) -> chess.Move:
     # Returns the move in the list of legal moves with the index of the move
     # with the highest probability.
     return legal_moves[best_move_idx]
+
+
+def collate_fn(batch):
+    boards = [item[0] for item in batch]
+    moves = [item[1] for item in batch]
+    return boards, moves
