@@ -11,7 +11,7 @@ class ChessCNN(nn.Module):
         super(ChessCNN, self).__init__()
         # Convolutional layer 1
         self.conv1 = nn.Sequential(
-            nn.Conv2d(12, 512, kernel_size=3, padding=1),
+            nn.Conv2d(13, 512, kernel_size=3, padding=1),
             nn.BatchNorm2d(512),
             nn.ReLU()
         )
@@ -29,8 +29,7 @@ class ChessCNN(nn.Module):
             nn.BatchNorm2d(2),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(2 * 8 * 8, 4672),
-            nn.LogSoftmax(dim=1)
+            nn.Linear(2 * 8 * 8, 64 * 64 + 64),
         )
     
     

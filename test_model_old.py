@@ -3,6 +3,7 @@ from ChessCNN import ChessCNN
 from functions import get_best_move
 from stockfish import Stockfish
 import torch
+import random
 
 
 def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None:
@@ -18,6 +19,8 @@ def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None
             stockfish.set_fen_position(board.fen())
         else:
             # Black (stockfish) turn.
+            """random_choice = random.choice(list(board.legal_moves))
+            board.push(random_choice)"""
             stockfish_best_move = stockfish.get_best_move()
             stockfish_move = chess.Move.from_uci(stockfish_best_move)
             if stockfish_move:
@@ -33,8 +36,8 @@ if __name__ == "__main__":
     model.eval()
 
     # Initialize stockfish and set the skill level.
-    #stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
-    stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    #stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
@@ -43,9 +46,9 @@ if __name__ == "__main__":
     
     # Keeps track of the results.
     results = {"White": 0, "Black": 0, "Draw": 0}
-    num_games = 1000
+    num_games = 100
     for i in range(num_games):
-        # Runs loop for each game and appends the result to the result dictionary,
+        # Runs loop for each game and appends the result to the results dictionary,
         # then resets the board when the game is over and prints the result when all games are over.
         play_game(model, board, stockfish)
         print("Game:", i + 1)

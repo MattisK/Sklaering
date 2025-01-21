@@ -5,6 +5,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
 import os
 import numpy as np
+from functions import collate_fn
 
 
 class EarlyStopping:
@@ -50,6 +51,7 @@ def train(
     else: 
         val_loss_history = []
 
+    # Initialize early stopping.
     early_stopping = EarlyStopping()
 
     # Training loop.
@@ -61,10 +63,10 @@ def train(
         total_loss = 0.0
 
         # Fetches a sample from the dataloader which is an instance of 'DataLoader'.
-        for boards, moves in train_dataloader:
+        for i, (boards_batch, moves_batch) in enumerate(train_dataloader):
             # The samples fetched.
-            boards = boards.to(device)
-            moves = moves.to(device).long()
+            boards = torch.cat(boards_batch, dim=0).to(device)
+            moves = torch.cat(moves_batch, dim=0).to(device)
 
             # Reset the gradients from previous iteration.
             optimizer.zero_grad()
@@ -83,6 +85,8 @@ def train(
 
             # Update the total loss.
             total_loss += loss.item()
+
+            print(f"{i + 1}/{len(train_dataloader)}")
         
         avg_train_loss = total_loss / len(train_dataloader)
         print(f"Epoch: {epoch + 1}/{epochs}, loss: {avg_train_loss}")
@@ -94,15 +98,17 @@ def train(
         val_loss = 0.0
 
         with torch.no_grad():
-            for boards, moves in validation_dataloader:
-                boards = boards.to(device)
-                moves = moves.to(device).long()
+            for i, (boards_batch, moves_batch) in enumerate(validation_dataloader):
+                boards = torch.cat(boards_batch, dim=0).to(device)
+                moves = torch.cat(moves_batch, dim=0).to(device)
 
                 policy = model(boards)
 
                 loss = criterion(policy, moves)
 
                 val_loss += loss.item()
+
+                print(f"{i + 1}/{len(validation_dataloader)}")
 
         avg_val_loss = val_loss / len(validation_dataloader)
         print(f"Epoch: {epoch + 1}/{epochs}, validation loss: {avg_val_loss}")
@@ -129,23 +135,24 @@ def train(
 
 if __name__ == "__main__":
     pgn_file = "lichess_db_standard_rated_2014-09.pgn"
-    batch_size = 128
+    batch_size = 32
     learning_rate = 0.001
-    epochs = 100
+    epochs = 1000
 
-    # Checks if cuda cores are available.
+    # Checks if CUDA cores are available.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load dataset and parse it to a DataLoader instance with a given batch size and shuffling.
-    dataset = ChessDataset(pgn_file, 10000)
+    # Load dataset and parse it to a DataLoader instance later with a given batch size and shuffling.
+    dataset = ChessDataset(pgn_file, 100000)
 
+    # Split the data in training and validation.
     train_size = int(0.8 * len(dataset))
     validation_size = len(dataset) - train_size
     train_dataset, validation_dataset = random_split(dataset, [train_size, validation_size])
     print(f"Training samples: {len(train_dataset)}, validation samples: {len(validation_dataset)}.")
 
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+    validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
     # Initialize the model. If one already exists load that model.
     model = ChessCNN().to(device)
