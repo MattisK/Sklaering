@@ -12,8 +12,12 @@ def load_json() -> dict:
 
     return results
 
+<<<<<<< Updated upstream
 def get_confidence_interval_and_average(data) -> dict:
     """Takes a list of data and returns the average, standard deviation, len of data and the confidence interval."""
+=======
+def get_confidence_interval_and_average(data, alpha) -> dict:
+>>>>>>> Stashed changes
     if len(data) == 0:
         raise ValueError("The data list must not be empty.")
     data = np.array(data)
@@ -25,9 +29,10 @@ def get_confidence_interval_and_average(data) -> dict:
     
     # Beregn standard error
     standard_error = std_dev / np.sqrt(len(data))
-    
+
+    conf = 1-alpha/2
     # confidence interval (95%)
-    t_value = stats.t.ppf(0.975, df=len(data) - 1)  # 0.975 for tosidet 95%
+    t_value = stats.t.ppf(conf, df=len(data) - 1)  # 0.975 for tosidet 95%
     margin_of_error = t_value * standard_error
     confidence_interval = (avg - margin_of_error, avg + margin_of_error)
     
@@ -55,7 +60,7 @@ def compare(obs, num_games, obs2, num_games2) -> float:
     
     return p
 
-def perform_t_test(list1, list2) -> tuple:
+def perform_t_test(list1, list2, alpha) -> tuple:
     """
     Perform a two-sample t-test to compare the means of two lists.
     """
@@ -63,7 +68,7 @@ def perform_t_test(list1, list2) -> tuple:
     t_stat, p_value = ttest_ind(list1, list2, equal_var=False)  # Use Welch's t-test
 
     # Interpret the p-value
-    significance_level = 0.05
+    significance_level = alpha
     if p_value < significance_level:
         interpretation = "The difference between the two groups is statistically significant."
     else:
@@ -74,7 +79,7 @@ def perform_t_test(list1, list2) -> tuple:
     
 from scipy.stats import t
 
-def compare_means(avg1, std1, n1, avg2, std2, n2, confidence=0.95) -> tuple:
+def compare_means(avg1, std1, n1, avg2, std2, n2, alpha) -> tuple:
     """
     Compare two means using a confidence interval and a t-test.
     """
@@ -92,7 +97,6 @@ def compare_means(avg1, std1, n1, avg2, std2, n2, confidence=0.95) -> tuple:
     df = ((se1**2 + se2**2)**2) / ((se1**4 / (n1 - 1)) + (se2**4 / (n2 - 1)))
 
     # Calculate the critical t-value
-    alpha = 1 - confidence
     t_critical = t.ppf(1 - alpha / 2, df)
 
     # Confidence interval for the difference
@@ -112,21 +116,49 @@ def compare_means(avg1, std1, n1, avg2, std2, n2, confidence=0.95) -> tuple:
     # Return results
     return mean_diff, (ci_lower, ci_upper), t_stat, p_value, interpretation
 
-def compare_versions(dict1, dict2, alpha = 0.05) -> None:
-    
-    # calculate confidence level
-    conf = 1 - alpha
-    
+def compare_versions(dict1, dict2, alpha) -> None:
+
     # calculate the ratio for white, black and draws
     for type in ["Stockfish", "Stockfish 1", "Stockfish 2", "Worstfish", "Random"]:
+        print("-"*100)
         print(type)
-        white_p = compare(dict1[type]["White"], dict1["NumGames"], dict2[type]["White"], dict2["NumGames"])
-        black_p = compare(dict1[type]["Black"], dict1["NumGames"], dict2[type]["Black"], dict2["NumGames"])
-        draw_p = compare(dict1[type]["Draw"], dict1["NumGames"], dict2[type]["Draw"], dict2["NumGames"])
+        if type != "Worstfish":
+            NumGames1 = dict1["NumGames"]
+            NumGames2 = dict2["NumGames"]
+        else:
+            NumGames1 = int(dict1["NumGames"]//50)
+            NumGames2 = int(dict2["NumGames"]//50)
+
+        white_p = compare(dict1[type]["White"], NumGames1, dict2[type]["White"], NumGames2)
+        black_p = compare(dict1[type]["Black"], NumGames1, dict2[type]["Black"], NumGames2)
+        draw_p = compare(dict1[type]["Draw"], NumGames1, dict2[type]["Draw"], NumGames2)
+
+        print()
+        print("White")
+        if dict1[type]["White"] == 0 or dict1["NumGames"] == 0:
+            print("average: ", 0, 0)
+        else:
+            print("average: ", dict1[type]["White"] / NumGames1, dict2[type]["White"] / NumGames2)
+
+        print()
+        print("black")
+        if dict1[type]["Black"] == 0 or dict1["NumGames"] == 0:
+            print("average: ", 0, 0)
+        else:
+            print("average: ", dict1[type]["Black"] / NumGames1, dict2[type]["Black"] / NumGames2)
+
+        print()
+        print("draw")
+        if dict1[type]["Draw"] == 0 or dict1["NumGames"] == 0:
+            print("average: ", 0, 0)
+        else:
+            print("average: ", dict1[type]["Draw"] / NumGames1, dict2[type]["Draw"] / NumGames2)
+
         if white_p < alpha:
             print("White: The difference between the two groups is statistically significant.")
-        else: 
+        else:
             print("White: The difference between the two groups is not statistically significant.")
+
         if black_p < alpha:
             print("Black: The difference between the two groups is statistically significant.")
         else:
@@ -135,12 +167,17 @@ def compare_versions(dict1, dict2, alpha = 0.05) -> None:
             print("Draw: The difference between the two groups is statistically significant.")
         else:
             print("Draw: The difference between the two groups is not statistically significant.")
-        
+
         # calculate t-test of move counts
+        print()
         print("MoveCount")
-        t_stat, p_val, interpretation = perform_t_test(dict1[type]["MoveCounts"], dict2[type]["MoveCounts"])
-        print(t_stat, p_val, interpretation)
-        
+        t_stat, p_val, interpretation = perform_t_test(dict1[type]["MoveCounts"], dict2[type]["MoveCounts"], alpha)
+        print("t-stat:", t_stat, "pvalue", p_val, "interpreation", interpretation)
+        avg1 = dict1[type]["MoveCounts"]
+        avg2 = dict2[type]["MoveCounts"]
+        print("averages:", sum(avg1)/len(avg1), sum(avg2)/len(avg2))
+        print()
+
         # calculate t-test of Move speed
         print("MoveSpeed")
         mean_diff, ci, t_stat1, p_value, interpretation1 = compare_means(dict1[type]["AIMoveTimes"]["average"],
@@ -148,17 +185,22 @@ def compare_versions(dict1, dict2, alpha = 0.05) -> None:
                                                                          dict1[type]["AIMoveTimes"]["n"],
                                                                          dict2[type]["AIMoveTimes"]["average"],
                                                                          dict2[type]["AIMoveTimes"]["s"],
-                                                                         dict2[type]["AIMoveTimes"]["n"])
-        print(mean_diff, ci, p_value, t_stat1, interpretation1)
+                                                                         dict2[type]["AIMoveTimes"]["n"],
+                                                                         alpha)
+        print("Mean difference",mean_diff, "confidence interval", ci, "P-value:",p_value, "T-statistic_1",t_stat1, "interpretation",interpretation1)
+        print("averages:", dict1[type]["AIMoveTimes"]["average"], dict2[type]["AIMoveTimes"]["average"])
+        print()
 
-    
 if __name__ == "__main__":
-    # run the stat code based on the json file
     results = load_json()
     version_list = list(results.keys())
-    for i, version in enumerate(version_list):
+    alpha = 0.05 / (len(version_list) * (len(version_list) - 1) / 2)  # Bonferroni correction for all pairwise comparisons
+    print("Bon Ferroni:", alpha)
+
+    for i in range(len(version_list)):
         if len(version_list) < 2:
             break
-        if i == len(version_list) - 1:
-            continue
-        compare_versions(results[version_list[i]], results[version_list[i + 1]])
+        for j in range(i + 1, len(version_list)):
+            print((version_list[i], "vs.", version_list[j]) * 3)
+            print("=" * 100)
+            compare_versions(results[version_list[i]], results[version_list[j]], alpha)
