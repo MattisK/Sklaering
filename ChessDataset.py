@@ -1,7 +1,6 @@
 import chess.pgn
 from torch.utils.data import Dataset
 import chess
-import numpy as np
 import torch
 from functions import encode_board, encode_move
 
