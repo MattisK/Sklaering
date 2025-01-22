@@ -13,8 +13,12 @@ def load_json() -> dict:
     return results
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 def get_confidence_interval_and_average(data) -> dict:
     """Takes a list of data and returns the average, standard deviation, len of data and the confidence interval."""
+=======
+def get_confidence_interval_and_average(data, alpha) -> dict:
+>>>>>>> Stashed changes
 =======
 def get_confidence_interval_and_average(data, alpha) -> dict:
 >>>>>>> Stashed changes
