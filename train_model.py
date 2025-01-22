@@ -134,7 +134,7 @@ def train(
         
 
 if __name__ == "__main__":
-    pgn_file = "lichess_db_standard_rated_2014-09.pgn"
+    pgn_file = "lichess_db_standard_rated_2014-11.pgn"
     batch_size = 32
     learning_rate = 0.001
     epochs = 1000
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load dataset and parse it to a DataLoader instance later with a given batch size and shuffling.
-    dataset = ChessDataset(pgn_file, 100000)
+    dataset = ChessDataset(pgn_file, 10000)
 
     # Split the data in training and validation.
     train_size = int(0.8 * len(dataset))

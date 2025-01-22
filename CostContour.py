@@ -18,3 +18,4 @@ plt.title('Loss vs. Epochs')
 plt.grid()
 plt.legend()
 plt.show()
+

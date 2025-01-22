@@ -72,6 +72,22 @@ def get_worst_move(stockfish: Stockfish, board: chess.Board) -> chess.Move:
         board.pop()
 
     return worst_move
+    #en alternativ måde at evaluere på, ikke sikker på om det er bedre.
+    # evaluations = []
+    # for move in legal_moves:
+    #     board.push(move)
+    #     stockfish.set_fen_position(board.fen())
+    #     evaluation = stockfish.get_evaluation()['value']
+    #     evaluations.append((move, evaluation))
+    #     board.pop()
+
+    # # Find the worst move based on evaluations
+    # if board.turn == chess.WHITE:
+    #     worst_move = min(evaluations, key=lambda x: x[1])[0]
+    # else:
+    #     worst_move = max(evaluations, key=lambda x: x[1])[0]
+
+    # return worst_move
 
 def play_game_worstfish(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> tuple[str, int, list]:
     """Plays a game and returns the result, number of moves, and list of AI move times."""

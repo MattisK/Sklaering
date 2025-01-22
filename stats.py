@@ -13,6 +13,7 @@ def load_json() -> dict:
     return results
 
 def get_confidence_interval_and_average(data) -> dict:
+    """Takes a list of data and returns the average, standard deviation, len of data and the confidence interval."""
     if len(data) == 0:
         raise ValueError("The data list must not be empty.")
     data = np.array(data)
@@ -38,7 +39,7 @@ def get_confidence_interval_and_average(data) -> dict:
     }
 
 def compare(obs, num_games, obs2, num_games2) -> float:
-    
+    """returns the p-value of the two ratios"""
     if obs == 0 and obs2 == 0:
         return -999
     # calculate the ratio for each player

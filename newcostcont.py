@@ -48,33 +48,3 @@ def gradient_descent(X,Y,theta,alpha,learning_iterations):
         cost_history.append(cost)
     return theta,cost_history
 
-    # Example data for X and Y
-    X = np.random.rand(100, 2)  # 100 samples, 2 features
-    Y = np.random.rand(100)     # 100 target values
-
-    # Normalize the features
-    X_norm, mean, std = normalize(X)
-
-    # Add bias feature
-    X_bias = add_bias_feature(X_norm)
-
-    # Initialize theta (parameters) with zeros
-    theta = np.zeros(X_bias.shape[1])
-
-    # Set learning rate and number of iterations
-    alpha = 0.01
-    learning_iterations = 1000
-
-    # Perform gradient descent
-    theta, cost_history = gradient_descent(X_bias, Y, theta, alpha, learning_iterations)
-
-    # Print the final parameters and cost history
-    print("Final parameters (theta):", theta)
-    print("Cost history:", cost_history)
-
-    # Plot the cost history
-    plt.plot(cost_history)
-    plt.xlabel('Iteration')
-    plt.ylabel('Cost')
-    plt.title('Cost History over Iterations')
-    plt.show()
