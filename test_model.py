@@ -146,14 +146,14 @@ if __name__ == "__main__":
     compare = True
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model_early_stopping.pth"))
+    model.load_state_dict(torch.load("chess_model_early_stopping.pth2400"))
     model.eval()
 
     # Initialize stockfish and set the skill level.
     #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
-    stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    # stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
-    #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
+    stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
