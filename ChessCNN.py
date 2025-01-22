@@ -23,7 +23,7 @@ class ChessCNN(nn.Module):
             nn.ReLU()
         )
 
-        # Policy network. Convolutional and fully connected layers.
+        # Policy network. Convolutional and linear layers.
         self.net = nn.Sequential(
             nn.Conv2d(512, 2, kernel_size=1),
             nn.BatchNorm2d(2),
