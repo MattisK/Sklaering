@@ -31,7 +31,7 @@ def play_game(model: ChessCNN, board: chess.Board, stockfish: Stockfish) -> None
 if __name__ == "__main__":
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model_early_stopping.pth", map_location=torch.device("cpu")))
+    model.load_state_dict(torch.load("chess_model_early_stopping2400.pth", map_location=torch.device("cpu")))
 
     # Set the model to evaluation mode.
     model.eval()
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # Keeps track of the results.
     wins = []
     draws = []
-    for j in range(1):
+    for j in range(31):
         results = {"White": 0, "Black": 0, "Draw": 0}
         num_games = 100
         stockfish.set_elo_rating(j * 100)
@@ -67,12 +67,12 @@ if __name__ == "__main__":
 
             board.reset()
 
-        #wins.append(results["White"])
-        #draws.append(results["Draw"])
+        wins.append(results["White"])
+        draws.append(results["Draw"])
         print(f"Elo {j * 100} done.")
         print(results)
-    #np_wins = np.array(wins)
-    #np_draws = np.array(draws)
+    np_wins = np.array(wins)
+    np_draws = np.array(draws)
 
-    #np.save("wins.npy", np_wins, allow_pickle=True)
-    #np.save("draws.npy", np_draws, allow_pickle=True)
+    np.save("wins.npy", np_wins, allow_pickle=True)
+    np.save("draws.npy", np_draws, allow_pickle=True)

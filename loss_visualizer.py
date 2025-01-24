@@ -8,7 +8,9 @@ def visualize_loss(train_loss_history: np.ndarray, val_loss_history: np.ndarray)
     plt.plot(np.arange(1, len(val_loss_history) + 1), val_loss_history, label="Validation loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
+    plt.xticks(range(1, 6))
     plt.legend()
+    plt.grid()
     plt.show()
 
 
