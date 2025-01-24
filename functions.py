@@ -8,11 +8,11 @@ def encode_board(board: chess.Board) -> torch.Tensor:
     """
     Takes the board state and converts it to a 13x8x8 one-hot encoded tensor.
     """
-    # An 8x8 board with a third dimension of size 12 to separate the pieces into different planes.
+    # An 8x8 board with a third dimension of size 13 to separate the pieces into different planes.
     np_board = np.zeros((12, 8, 8))
     # The encode_board function converts a chess board state into a 13x8x8 one-hot encoded tensor using the PyTorch library.
-    # This creates an empty board representation where each of the 12 planes corresponds to a different type
-    # of chess piece (6 for white pieces and 6 for black pieces). The 13th plane indicates which palyer's turn it is.
+    # This creates an empty board representation where each of the 13 planes corresponds to a different type
+    # of chess piece (6 for white pieces and 6 for black pieces). The 13th plane indicates which player's turn it is.
 
     # This dictionary maps each type of piece to an index. Lowercase letters represent black pieces, and uppercase letters represent white pieces.
     piece_map = {"p": 0, "n": 1, "b": 2, "r": 3, "q": 4, "k": 5,

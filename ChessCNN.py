@@ -6,7 +6,6 @@ class ChessCNN(nn.Module):
     def __init__(self) -> None:
         """
         Convolutional Neural Network (CNN) for the chess model.
-        Initialize the layers of the chess model.
         """
         super(ChessCNN, self).__init__()
         # Convolutional layer 1
@@ -35,7 +34,7 @@ class ChessCNN(nn.Module):
     
     def forward(self, x: torch.Tensor) -> tuple[torch.Tensor]:
         """
-        From the documentation: Defines the computation performed at every call.
+        Defines the computation performed at every call.
         """
         x = self.conv1(x)
         

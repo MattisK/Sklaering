@@ -6,27 +6,20 @@ from functions import encode_board, encode_move
 
 
 class ChessDataset(Dataset):
-    # The ChessDataset class is designed to handle and preprocess chess game data for use in machine learning models.
-    # It inherits from the abstract class Dataset, which is typically used in the PyTorch framework for handling datasets.
-    # Takes a path to a PGN (Portable Game Notation) file as input.
-    # Initializes the pgn_path attribute with the provided path.
-    # Calls the load_games method to load chess games from the PGN file and stores them in the games attribute.
-
     def __init__(self, pgn_path: str, max_games: int) -> None:
         """
-        A class that inherits from the abstract class 'Dataset',
-        which makes the model store the samples and their corresponding labels.
-        Initialize the PGN-path, the list of games and the maximum amount of games.
+        The ChessDataset class is designed to handle and preprocess chess game data for use in machine learning models.
+        It inherits from the abstract class Dataset, which is typically used in the PyTorch framework for handling datasets.
+        Takes a path to a PGN (Portable Game Notation) file as input.
+        Initializes the pgn_path attribute with the provided path.
+        Calls the load_games method to load chess games from the PGN file and stores them in the games attribute.
         """
         self.pgn_path = pgn_path
         self.max_games = max_games
         self.game_offsets = self.index_pgn_file()
 
-
-    # Opens the PGN file and reads up to 100 chess games.
-    # Stores each game in a list and returns this list.
     def index_pgn_file(self) -> list[chess.pgn.Game]:
-        """Load all games with specific traits from a PGN file. Returns a list of all games loaded."""
+        """Index a number of games with specific traits from a PGN file. Returns a list of all indexed games."""
         offsets = []
         counter = 0
         
@@ -46,7 +39,7 @@ class ChessDataset(Dataset):
                 if game is None:
                     break
                 
-                # Append to the list of all games.
+                # Append to the list of all offsets, if the following traits are fullfiled.
                 try:
                     if game.headers.get("Termination") == "Normal" and game.headers.get("Result") == "1-0" and (int(game.headers.get("WhiteElo")) >= 2400 and int(game.headers.get("BlackElo")) >= 2400):
                         offsets.append(offset)
@@ -64,7 +57,7 @@ class ChessDataset(Dataset):
 
     def __len__(self) -> int:
         """
-        Required for the abstract class 'Dataset'. Returns the amount of games loaded.
+        Required for the abstract class 'Dataset'. Returns the amount of games indexed.
         """
         return len(self.game_offsets)
     
@@ -72,15 +65,8 @@ class ChessDataset(Dataset):
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Required for the abstract class 'Dataset'.
-        Loads and returns a sample from the dataset at the given index 'idx'. Returns a tuple of tensors.
+        Loads and returns an encoded sample from the dataset at the given index 'idx'. Returns a tuple of tensors.
         """
-        # Takes an index idx and retrieves the corresponding game from the games list.
-        # Extracts the board state and moves for the game.
-        # If there are no moves, it recursively calls itself with the next index.
-        # Randomly selects a move and its corresponding board state and result.
-        # Encodes the board state and move into tensors.
-        # Returns a tuple of tensors representing the board state, move, and result.
-
         # Load a game at a given index.
         with open(self.pgn_path, "r") as pgn_file:
             pgn_file.seek(self.game_offsets[idx])
@@ -104,5 +90,5 @@ class ChessDataset(Dataset):
         if not positions or not moves:
             return self.__getitem__((idx + 1) % len(self.game_offsets))
 
-        # Returns a tuple of tensors for the board, move and result.
+        # Returns a tuple of tensors for the boards and moves.
         return torch.stack(positions), torch.tensor(moves, dtype=torch.long)

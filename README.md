@@ -1,4 +1,2 @@
 # Sklaering
-Ideen med dette projekt, er at lave en AI, der selv lære at spille skak ud fra Lichess databasen, Vi vil herefter finde ud af hvornår den opnår en acceptabel rate af korrekt træk, og derefter potentielt udvide den til at kunne spille mod bots på chess.com
-
-Datasættet der bliver brugt er 2014 - September 	179 MB 	1,000,056 hentet fra https://database.lichess.org/
+Chess is a complex game with a lot of different factors at play and training an artificial intelligence to play better than random can requires a lot of data. In this project we explore how different data influence the training process of an intelligent system. We do this through supervised learning, specifically classification, and by constructing a convolutional neural network with the ability to play chess. We conclude that using a large amount of high ranking player data allows the model to perform well at a broader spectrum of games than the same amount of lower quality data and much lower amount of data of higher quality. This implies the need to balance both data quality and diversity when training a chess bot through supervised learning.

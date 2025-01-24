@@ -15,8 +15,8 @@ def visualize_loss(train_loss_history: np.ndarray, val_loss_history: np.ndarray)
 
 
 if __name__ == "__main__":
-    train_loss_history = np.load("loss_history.npy", allow_pickle=True)
-    val_loss_history = np.load("val_loss_history.npy", allow_pickle=True)
+    train_loss_history = np.load("1800/loss_history.npy", allow_pickle=True)
+    val_loss_history = np.load("1800/val_loss_history.npy", allow_pickle=True)
 
     visualize_loss(train_loss_history, val_loss_history)
     
