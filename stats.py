@@ -12,16 +12,7 @@ def load_json() -> dict:
 
     return results
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-def get_confidence_interval_and_average(data) -> dict:
-    """Takes a list of data and returns the average, standard deviation, len of data and the confidence interval."""
-=======
 def get_confidence_interval_and_average(data, alpha) -> dict:
->>>>>>> Stashed changes
-=======
-def get_confidence_interval_and_average(data, alpha) -> dict:
->>>>>>> Stashed changes
     if len(data) == 0:
         raise ValueError("The data list must not be empty.")
     data = np.array(data)
@@ -55,10 +46,19 @@ def compare(obs, num_games, obs2, num_games2) -> float:
     ratio = obs / num_games
     ratio2 = obs2 / num_games2
     # calc the standard error for each player
-    se = np.sqrt(ratio * (1 - ratio) / num_games)
-    se2 = np.sqrt(ratio2 * (1 - ratio2) / num_games2)
+    if ratio * (1 - ratio) / num_games == 0:
+        se = np.sqrt(ratio * (1 - ratio) / num_games)
+    else:
+        se = 0
+    if ratio2 * (1 - ratio2) / num_games2 == 0:
+        se2 = 0
+    else:
+        se2 = np.sqrt(ratio2 * (1 - ratio2) / num_games2)
     # calc the z-value
-    z = (ratio - ratio2) / np.sqrt(se**2 + se2**2)
+    if se**2 + se2**2 == 0:
+        z = 0
+    else:
+        z = (ratio - ratio2) / np.sqrt(se**2 + se2**2)
     #get p value
     p = 2 * (1 - stats.norm.cdf(abs(z)))
     
@@ -130,8 +130,8 @@ def compare_versions(dict1, dict2, alpha) -> None:
             NumGames1 = dict1["NumGames"]
             NumGames2 = dict2["NumGames"]
         else:
-            NumGames1 = int(dict1["NumGames"]//50)
-            NumGames2 = int(dict2["NumGames"]//50)
+            NumGames1 = int(dict1["NumGames"]//5)
+            NumGames2 = int(dict2["NumGames"]//5)
 
         white_p = compare(dict1[type]["White"], NumGames1, dict2[type]["White"], NumGames2)
         black_p = compare(dict1[type]["Black"], NumGames1, dict2[type]["Black"], NumGames2)
@@ -139,24 +139,15 @@ def compare_versions(dict1, dict2, alpha) -> None:
 
         print()
         print("White")
-        if dict1[type]["White"] == 0 or dict1["NumGames"] == 0:
-            print("average: ", 0, 0)
-        else:
-            print("average: ", dict1[type]["White"] / NumGames1, dict2[type]["White"] / NumGames2)
+        print("average: ", dict1[type]["White"] / NumGames1, dict2[type]["White"] / NumGames2)
 
         print()
         print("black")
-        if dict1[type]["Black"] == 0 or dict1["NumGames"] == 0:
-            print("average: ", 0, 0)
-        else:
-            print("average: ", dict1[type]["Black"] / NumGames1, dict2[type]["Black"] / NumGames2)
+        print("average: ", dict1[type]["Black"] / NumGames1, dict2[type]["Black"] / NumGames2)
 
         print()
         print("draw")
-        if dict1[type]["Draw"] == 0 or dict1["NumGames"] == 0:
-            print("average: ", 0, 0)
-        else:
-            print("average: ", dict1[type]["Draw"] / NumGames1, dict2[type]["Draw"] / NumGames2)
+        print("average: ", dict1[type]["Draw"] / NumGames1, dict2[type]["Draw"] / NumGames2)
 
         if white_p < alpha:
             print("White: The difference between the two groups is statistically significant.")

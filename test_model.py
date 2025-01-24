@@ -146,26 +146,18 @@ if __name__ == "__main__":
     compare = True
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model_early_stopping.pth2400"))
+    model.load_state_dict(torch.load("chess_model_early_stopping.pth"))
     model.eval()
 
     # Initialize stockfish and set the skill level.
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
     #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     # stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
-    #stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
-=======
-    stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
->>>>>>> Stashed changes
-=======
-    stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+    #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
->>>>>>> Stashed changes
     #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
-    stockfish = Stockfish(stockfish_path, depth=1)
-    stockfish.set_skill_level(0)
 
     # Keeps track of the results.
     results_stock = {"White": 0, "Black": 0, "Draw": 0, "MoveCounts": [], "AIMoveTimes": []}
@@ -176,15 +168,16 @@ if __name__ == "__main__":
 
     for type in ["stock", "stock_1", "stock_2", "random", "worst"]:
         if type == "worst":
-            num_games = 5000
-            num_games = int(num_games//50)
-        else: num_games = 5000
+            num_games = 100
+        else: num_games = 500
 
         for i in range(num_games):
             print(f"Game: {i + 1} ({type})")
             board = chess.Board()  # Reset the board for each game
             if type == "stock":
-                stockfish = Stockfish(stockfish_path, depth=1)
+                stockfish = Stockfish(stockfish_path)
+                stockfish.set_depth(1)
+                stockfish.set_skill_level(0)
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock["MoveCounts"].append(length)
                 results_stock["AIMoveTimes"].extend(ai_move_times)
@@ -195,7 +188,9 @@ if __name__ == "__main__":
                 elif result == "1/2-1/2":
                     results_stock["Draw"] += 1
             elif type == "stock_1":
-                stockfish = Stockfish(stockfish_path, depth=2)
+                stockfish = Stockfish(stockfish_path)
+                stockfish.set_depth(2)
+                stockfish.set_skill_level(5)
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock_1["MoveCounts"].append(length)
                 results_stock_1["AIMoveTimes"].extend(ai_move_times)
@@ -206,7 +201,9 @@ if __name__ == "__main__":
                 elif result == "1/2-1/2":
                     results_stock_1["Draw"] += 1
             elif type == "stock_2":
-                stockfish = Stockfish(stockfish_path, depth=4)
+                stockfish = Stockfish(stockfish_path)
+                stockfish.set_depth(4)
+                stockfish.set_skill_level(10)
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock_2["MoveCounts"].append(length)
                 results_stock_2["AIMoveTimes"].extend(ai_move_times)
@@ -246,7 +243,7 @@ if __name__ == "__main__":
             results_worst["AIMoveTimes"] = get_confidence_interval_and_average(results_worst["AIMoveTimes"], 0.05)
         elif type == "random":
             results_random["AIMoveTimes"] = get_confidence_interval_and_average(results_random["AIMoveTimes"], 0.05)
-    num_games = 5000
+    num_games = 10
     # Save game results to file
     result_to_json = {"NumGames": num_games, "Stockfish": results_stock, "Stockfish 1": results_stock_1, "Stockfish 2":results_stock_2, "Worstfish": results_worst, "Random": results_random}
     games_to_json(result_to_json)
