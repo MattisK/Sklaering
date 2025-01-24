@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # Initialize stockfish and set the skill level.
     #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
-    stockfish_path = "C:/Users/chris/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_elo_rating(0)
 
