@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     # Initialize stockfish and set the skill level.
     #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
-    stockfish_path = "C:/Users/chris/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
+    stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_elo_rating(0)
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # Keeps track of the results.
     wins = []
     draws = []
-    for j in range(1):
+    for j in range(31):
         results = {"White": 0, "Black": 0, "Draw": 0}
         num_games = 100
         stockfish.set_elo_rating(j * 100)
@@ -67,12 +67,12 @@ if __name__ == "__main__":
 
             board.reset()
 
-        #wins.append(results["White"])
-        #draws.append(results["Draw"])
+        wins.append(results["White"])
+        draws.append(results["Draw"])
         print(f"Elo {j * 100} done.")
         print(results)
-    #np_wins = np.array(wins)
-    #np_draws = np.array(draws)
+    np_wins = np.array(wins)
+    np_draws = np.array(draws)
 
-    #np.save("wins.npy", np_wins, allow_pickle=True)
-    #np.save("draws.npy", np_draws, allow_pickle=True)
+    np.save("wins.npy", np_wins, allow_pickle=True)
+    np.save("draws.npy", np_draws, allow_pickle=True)
