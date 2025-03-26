@@ -1,0 +1,42 @@
+import time
+import chess
+from ChessCNN import ChessCNN
+from functions import get_best_move
+from stockfish import Stockfish
+import torch
+import random
+from stats import get_confidence_interval_and_average
+import json
+import os
+
+def main():
+    # Initialize the chess board
+    board = chess.Board()
+
+    # Load the chess engine
+    engine =  ChessCNN()
+    engine.load_state_dict(torch.load("chess_model_early_stopping.pth"))
+    engine.eval()
+
+    while not board.is_game_over():
+        print(board)
+        if board.turn == chess.WHITE:
+            # Player's turn
+            move = input("Enter your move: ")
+            try:
+                board.push_san(move)
+            except ValueError:
+                print("Invalid move. Try again.")
+        else:
+            # AI's turn
+            result = engine.play(board, chess.engine.Limit(time=2.0))
+            board.push(result.move)
+
+    print("Game over")
+    print(board.result())
+
+    # Close the engine
+    engine.quit()
+
+if __name__ == "__main__":
+    main()
