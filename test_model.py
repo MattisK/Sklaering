@@ -146,24 +146,22 @@ if __name__ == "__main__":
     compare = True
     # Load the trained model.
     model = ChessCNN()
-    model.load_state_dict(torch.load("chess_model_early_stopping.pth2400"))
+    model.load_state_dict(torch.load("chess_model_early_stopping2400.pth"))
     model.eval()
 
     # Initialize stockfish and set the skill level.
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+
     #stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     # stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/Users/chris/Desktop/Stockfish/stockfish/stockfish-windows-x86-64-avx2"
-=======
-    stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+
+    # stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
->>>>>>> Stashed changes
-=======
-    stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
+
+    # stockfish_path = "C:/Users/Matti/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2"
     #stockfish_path = "C:/Users/chris/OneDrive/Desktop/stockfish/stockfish/stockfish-windows-x86-64-avx2"
->>>>>>> Stashed changes
-    #stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
+
+    stockfish_path = "C:/#DTU/3 ugers dec2025/Sklaering/stockfish/stockfish-windows-x86-64-avx2.exe"
     stockfish = Stockfish(stockfish_path, depth=1)
     stockfish.set_skill_level(0)
 
@@ -176,15 +174,17 @@ if __name__ == "__main__":
 
     for type in ["stock", "stock_1", "stock_2", "random", "worst"]:
         if type == "worst":
-            num_games = 5000
-            num_games = int(num_games//50)
-        else: num_games = 5000
+            num_games = 500
+            num_games = int(num_games//5)
+        else: num_games = 500
 
         for i in range(num_games):
             print(f"Game: {i + 1} ({type})")
             board = chess.Board()  # Reset the board for each game
             if type == "stock":
-                stockfish = Stockfish(stockfish_path, depth=1)
+                stockfish = Stockfish(stockfish_path)
+                stockfish.set_skill_level(0)
+                stockfish.set_depth(1)
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock["MoveCounts"].append(length)
                 results_stock["AIMoveTimes"].extend(ai_move_times)
@@ -195,7 +195,9 @@ if __name__ == "__main__":
                 elif result == "1/2-1/2":
                     results_stock["Draw"] += 1
             elif type == "stock_1":
-                stockfish = Stockfish(stockfish_path, depth=2)
+                stockfish = Stockfish(stockfish_path)
+                stockfish.set_skill_level(5)
+                stockfish.set_depth(2)
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock_1["MoveCounts"].append(length)
                 results_stock_1["AIMoveTimes"].extend(ai_move_times)
@@ -206,7 +208,9 @@ if __name__ == "__main__":
                 elif result == "1/2-1/2":
                     results_stock_1["Draw"] += 1
             elif type == "stock_2":
-                stockfish = Stockfish(stockfish_path, depth=4)
+                stockfish = Stockfish(stockfish_path)
+                stockfish.set_skill_level(10)
+                stockfish.set_depth(4)
                 result, length, ai_move_times = play_game_stockfish(model, board, stockfish)
                 results_stock_2["MoveCounts"].append(length)
                 results_stock_2["AIMoveTimes"].extend(ai_move_times)

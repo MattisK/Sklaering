@@ -12,16 +12,10 @@ def load_json() -> dict:
 
     return results
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-def get_confidence_interval_and_average(data) -> dict:
+    
+def get_confidence_interval_and_average(data, alpha) -> dict:
     """Takes a list of data and returns the average, standard deviation, len of data and the confidence interval."""
-=======
-def get_confidence_interval_and_average(data, alpha) -> dict:
->>>>>>> Stashed changes
-=======
-def get_confidence_interval_and_average(data, alpha) -> dict:
->>>>>>> Stashed changes
+
     if len(data) == 0:
         raise ValueError("The data list must not be empty.")
     data = np.array(data)
