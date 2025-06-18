@@ -5,7 +5,7 @@ from functions import get_best_move
 from stockfish import Stockfish
 import torch
 import random
-from stats import get_confidence_interval_and_average
+
 import json
 import os
 
